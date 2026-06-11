@@ -1,23 +1,81 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { useState, useEffect } from 'react';
+import {
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import Avatar from '../../components/ui/Avatar';
-import Button from '../../components/ui/Button';
-import { MOCK_USERS, formatCount, MOCK_PAST_LIVES } from '../../constants/mock-data';
 import { Colors, Typography, Spacing, Radius } from '../../constants/theme';
+import { apiGet, apiPost, apiDelete } from '../../lib/api';
+import { formatCount } from '../../constants/mock-data';
+
+interface ApiUser {
+  id: string;
+  username: string;
+  handle: string;
+  avatarEmoji: string;
+  bio?: string;
+  isVerified: boolean;
+  followersCount: number;
+  followingCount: number;
+  likesCount: number;
+  isFollowing?: boolean;
+}
 
 export default function UserProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const user = MOCK_USERS.find(u => u.id === id) ?? MOCK_USERS[0];
-  const [following, setFollowing] = useState(user.isFollowing ?? false);
-  const [tab, setTab] = useState(0);
+  const [user,       setUser]       = useState<ApiUser | null>(null);
+  const [loading,    setLoading]    = useState(true);
+  const [tab,        setTab]        = useState(0);
+  const [fwPending,  setFwPending]  = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const res = await apiGet<{ user: ApiUser }>(`/api/users/${id}`);
+      if (res.success && res.data) setUser(res.data.user);
+      setLoading(false);
+    })();
+  }, [id]);
+
+  async function toggleFollow() {
+    if (!user || fwPending) return;
+    setFwPending(true);
+
+    if (user.isFollowing) {
+      const res = await apiDelete(`/api/users/${user.id}/follow`);
+      if (res.success) setUser(u => u ? { ...u, isFollowing: false, followersCount: Math.max(0, u.followersCount - 1) } : u);
+    } else {
+      const res = await apiPost(`/api/users/${user.id}/follow`);
+      if (res.success) setUser(u => u ? { ...u, isFollowing: true, followersCount: u.followersCount + 1 } : u);
+    }
+
+    setFwPending(false);
+  }
+
+  if (loading) {
+    return (
+      <View style={[styles.safe, { alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator color={Colors.green} size="large" />
+      </View>
+    );
+  }
+
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <TouchableOpacity style={styles.back} onPress={() => router.back()}>
+          <Text style={styles.backText}>← Retour</Text>
+        </TouchableOpacity>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: Colors.gray }}>Utilisateur introuvable</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-
-      {/* Back */}
       <TouchableOpacity style={styles.back} onPress={() => router.back()}>
         <Text style={styles.backText}>← Retour</Text>
       </TouchableOpacity>
@@ -25,9 +83,13 @@ export default function UserProfileScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <LinearGradient colors={[Colors.dark3, Colors.dark]} style={styles.topSection}>
 
-          {/* Hero */}
           <View style={styles.hero}>
-            <Avatar emoji={user.avatarEmoji} size={64} ring="green" verified={user.isVerified} />
+            <Avatar
+              emoji={user.avatarEmoji}
+              size={64}
+              ring={user.isFollowing ? 'green' : 'none'}
+              verified={user.isVerified}
+            />
             <View style={styles.heroInfo}>
               <Text style={styles.name}>{user.username}</Text>
               <Text style={styles.handle}>{user.handle}</Text>
@@ -35,7 +97,6 @@ export default function UserProfileScreen() {
             </View>
           </View>
 
-          {/* Stats */}
           <View style={styles.stats}>
             {[
               { val: formatCount(user.followersCount), label: 'Followers' },
@@ -49,14 +110,21 @@ export default function UserProfileScreen() {
             ))}
           </View>
 
-          {/* Actions */}
           <View style={styles.btns}>
-            <Button
-              label={following ? '✓ Abonné' : '+ Suivre'}
-              variant={following ? 'secondary' : 'primary'}
-              onPress={() => setFollowing(f => !f)}
-              style={styles.followBtn}
-            />
+            <TouchableOpacity
+              style={[styles.followBtn, user.isFollowing && styles.followingBtn]}
+              onPress={toggleFollow}
+              disabled={fwPending}
+              activeOpacity={0.85}
+            >
+              {fwPending ? (
+                <ActivityIndicator color={user.isFollowing ? Colors.gray : Colors.dark2} size="small" />
+              ) : (
+                <Text style={[styles.followBtnTxt, user.isFollowing && styles.followingBtnTxt]}>
+                  {user.isFollowing ? '✓ Abonné' : '+ Suivre'}
+                </Text>
+              )}
+            </TouchableOpacity>
             <TouchableOpacity style={styles.msgBtn}>
               <Text style={{ fontSize: 18 }}>💬</Text>
             </TouchableOpacity>
@@ -64,7 +132,6 @@ export default function UserProfileScreen() {
 
         </LinearGradient>
 
-        {/* Tabs */}
         <View style={styles.tabs}>
           {['Lives passés', 'Planifiés', 'À propos'].map((t, i) => (
             <TouchableOpacity key={t} style={styles.tabItem} onPress={() => setTab(i)}>
@@ -74,28 +141,22 @@ export default function UserProfileScreen() {
           ))}
         </View>
 
-        {/* Grid */}
-        {tab === 0 && (
-          <View style={styles.grid}>
-            {MOCK_PAST_LIVES.map(live => (
-              <TouchableOpacity key={live.id} style={styles.gridCard} activeOpacity={0.85}>
-                <LinearGradient colors={['#0A1A12', '#1A2A18']} style={styles.gridThumb}>
-                  <Text style={{ fontSize: 28 }}>{live.emoji}</Text>
-                </LinearGradient>
-                <View style={styles.gridFooter}>
-                  <Text style={styles.gridViews}>👁 {formatCount(live.viewCount)} vues</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
         {tab === 2 && (
           <View style={styles.aboutSection}>
             <Text style={styles.aboutText}>{user.bio ?? 'Aucune description.'}</Text>
           </View>
         )}
 
+        {tab !== 2 && (
+          <View style={styles.empty}>
+            <Text style={{ fontSize: 36 }}>📹</Text>
+            <Text style={styles.emptyText}>
+              {tab === 0 ? 'Aucun live passé' : 'Aucun live planifié'}
+            </Text>
+          </View>
+        )}
+
+        <View style={{ height: 24 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -117,24 +178,18 @@ const styles = StyleSheet.create({
   statVal: { fontFamily: 'SpaceMono_400Regular', fontSize: Typography.sizes.lg, fontWeight: '900', color: Colors.ivory },
   statLabel: { fontFamily: Typography.fontBody, fontSize: Typography.sizes.xs, color: Colors.gray, marginTop: 2 },
   btns: { flexDirection: 'row', gap: Spacing.sm, alignItems: 'center' },
-  followBtn: { flex: 1 },
-  msgBtn: {
-    width: 44, height: 44,
-    backgroundColor: Colors.dark3,
-    borderRadius: Radius.md,
-    borderWidth: 1, borderColor: Colors.border,
-    alignItems: 'center', justifyContent: 'center',
-  },
+  followBtn: { flex: 1, backgroundColor: Colors.green, borderRadius: Radius.lg, paddingVertical: 12, alignItems: 'center' },
+  followingBtn: { backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: Colors.border },
+  followBtnTxt: { fontFamily: Typography.fontBody, fontSize: Typography.sizes.base, fontWeight: '700', color: Colors.dark2 },
+  followingBtnTxt: { color: Colors.gray },
+  msgBtn: { width: 44, height: 44, backgroundColor: Colors.dark3, borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
   tabs: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: Colors.border, paddingHorizontal: Spacing.base },
   tabItem: { flex: 1, alignItems: 'center', paddingVertical: Spacing.md, position: 'relative' },
   tabText: { fontFamily: Typography.fontBody, fontSize: Typography.sizes.sm, color: Colors.gray },
   tabActive: { color: Colors.ivory },
   tabUnderline: { position: 'absolute', bottom: -1, left: '10%', right: '10%', height: 2, backgroundColor: Colors.green, borderRadius: 1 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', padding: Spacing.sm, gap: Spacing.sm },
-  gridCard: { width: '47%', backgroundColor: Colors.dark3, borderRadius: Radius.lg, overflow: 'hidden' },
-  gridThumb: { height: 80, alignItems: 'center', justifyContent: 'center' },
-  gridFooter: { padding: Spacing.sm },
-  gridViews: { fontFamily: Typography.fontBody, fontSize: Typography.sizes.xs, color: Colors.gray },
+  empty: { alignItems: 'center', paddingVertical: 40, gap: 10 },
+  emptyText: { fontFamily: Typography.fontBody, fontSize: Typography.sizes.base, color: Colors.gray },
   aboutSection: { padding: Spacing.base },
   aboutText: { fontFamily: Typography.fontBody, fontSize: Typography.sizes.base, color: Colors.gray, lineHeight: 22 },
 });

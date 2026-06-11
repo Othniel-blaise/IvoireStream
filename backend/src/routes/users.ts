@@ -28,6 +28,13 @@ export default async function usersRoutes(app: FastifyInstance) {
     const { page, limit } = paginationSchema.parse(req.query);
     const { q } = req.query as { q?: string };
 
+    // Auth optionnelle pour renvoyer isFollowing
+    let currentUserId: string | null = null;
+    try {
+      await req.jwtVerify();
+      currentUserId = (req.user as { userId: string }).userId;
+    } catch { /* non authentifié, pas grave */ }
+
     const where = q
       ? { OR: [
           { username: { contains: q, mode: 'insensitive' as const } },
@@ -46,9 +53,20 @@ export default async function usersRoutes(app: FastifyInstance) {
       prisma.user.count({ where }),
     ]);
 
+    // Enrichir avec isFollowing si connecté
+    let enriched = users.map(u => ({ ...u, isFollowing: false }));
+    if (currentUserId && users.length > 0) {
+      const follows = await prisma.follow.findMany({
+        where: { followerId: currentUserId, followedId: { in: users.map(u => u.id) } },
+        select: { followedId: true },
+      });
+      const followed = new Set(follows.map(f => f.followedId));
+      enriched = users.map(u => ({ ...u, isFollowing: followed.has(u.id) }));
+    }
+
     return reply.send({
       success: true,
-      data: { users, total, page, pages: Math.ceil(total / limit) },
+      data: { users: enriched, total, page, pages: Math.ceil(total / limit) },
     });
   });
 
