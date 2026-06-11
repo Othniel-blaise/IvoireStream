@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 90" width="480" height="90" role="img" aria-label="IvoireStream Wordmark">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Syne:wght@900&amp;family=Space+Mono&amp;display=swap');
+    </style>
+
+    <linearGradient id="wordGradW" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#19E680"/>
+      <stop offset="48%"  stop-color="#00C060"/>
+      <stop offset="100%" stop-color="#FF8C00"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Transparent background — paste on any surface -->
+
+  <!-- ─── Wordmark ─── -->
+  <text x="2" y="58"
+        font-family="'Syne', 'Arial Black', 'Trebuchet MS', sans-serif"
+        font-weight="900"
+        font-size="52"
+        fill="url(#wordGradW)"
+        xml:space="preserve">IvoireStream</text>
+
+  <!-- ─── Tagline ─── -->
+  <text x="4" y="80"
+        font-family="'Space Mono', 'Courier New', monospace"
+        font-size="9.5"
+        fill="#7A8A82"
+        letter-spacing="3.5">STREAM · IVOIRIEN · LIVE</text>
+</svg>

@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Users ──────────────────────────────────────────────────────────────
+
+model User {
+  id             String   @id @default(cuid())
+  username       String   @unique
+  handle         String   @unique
+  email          String   @unique
+  phone          String?  @unique
+  passwordHash   String
+  avatarEmoji    String   @default("👤")
+  bio            String?
+  role           UserRole @default(VIEWER)
+  isVerified     Boolean  @default(false)
+  followersCount Int      @default(0)
+  followingCount Int      @default(0)
+  likesCount     Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  streams       LiveStream[]
+  wallet        Wallet?
+  comments      Comment[]
+  giftsSent     Gift[]         @relation("GiftSender")
+  followers     Follow[]       @relation("Followed")
+  following     Follow[]       @relation("Follower")
+  refreshTokens RefreshToken[]
+  payments      Payment[]
+}
+
+enum UserRole {
+  VIEWER
+  CREATOR
+  ADMIN
+}
+
+// ── Follow ─────────────────────────────────────────────────────────────
+
+model Follow {
+  id         String   @id @default(cuid())
+  followerId String
+  followedId String
+  createdAt  DateTime @default(now())
+
+  follower User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followed User @relation("Followed", fields: [followedId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followedId])
+  @@index([followedId])
+}
+
+// ── Streams ────────────────────────────────────────────────────────────
+
+model LiveStream {
+  id          String           @id @default(cuid())
+  hostId      String
+  title       String
+  emoji       String           @default("🎤")
+  description String?
+  viewerCount Int              @default(0)
+  isLive      Boolean          @default(true)
+  visibility  StreamVisibility @default(PUBLIC)
+  priceXOF    Int?
+  category    StreamCategory
+  startedAt   DateTime         @default(now())
+  endedAt     DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  host     User      @relation(fields: [hostId], references: [id])
+  comments Comment[]
+  gifts    Gift[]
+  payments Payment[]
+
+  @@index([hostId])
+  @@index([isLive, visibility])
+}
+
+enum StreamVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum StreamCategory {
+  MUSIC
+  COMEDY
+  BEAUTY
+  TECH
+  COOKING
+  SPORTS
+  EDUCATION
+  LIFESTYLE
+}
+
+// ── Comments ───────────────────────────────────────────────────────────
+
+model Comment {
+  id       String     @id @default(cuid())
+  streamId String
+  authorId String
+  text     String
+  sentAt   DateTime   @default(now())
+
+  stream LiveStream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  author User       @relation(fields: [authorId], references: [id])
+
+  @@index([streamId, sentAt])
+}
+
+// ── Gifts ──────────────────────────────────────────────────────────────
+
+model Gift {
+  id         String     @id @default(cuid())
+  streamId   String
+  senderId   String
+  emoji      String
+  label      String
+  coinsValue Int
+  xofValue   Int
+  sentAt     DateTime   @default(now())
+
+  stream LiveStream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  sender User       @relation("GiftSender", fields: [senderId], references: [id])
+
+  @@index([streamId])
+}
+
+// ── Wallet & Transactions ──────────────────────────────────────────────
+
+model Wallet {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  balanceXOF        Int      @default(0)
+  livesCount        Int      @default(0)
+  privateLivesCount Int      @default(0)
+  totalViewers      Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+}
+
+model Transaction {
+  id        String          @id @default(cuid())
+  walletId  String
+  type      TransactionType
+  label     String
+  amountXOF Int
+  emoji     String
+  date      DateTime        @default(now())
+
+  wallet Wallet @relation(fields: [walletId], references: [id])
+
+  @@index([walletId, date])
+}
+
+enum TransactionType {
+  GIFT_RECEIVED
+  PRIVATE_LIVE
+  WITHDRAWAL
+  DEPOSIT
+}
+
+// ── Payments (Wave CI) ─────────────────────────────────────────────────
+
+model Payment {
+  id        String        @id @default(cuid())
+  userId    String
+  streamId  String?
+  amountXOF Int
+  waveRef   String?       @unique
+  status    PaymentStatus @default(PENDING)
+  type      PaymentType
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user   User        @relation(fields: [userId], references: [id])
+  stream LiveStream? @relation(fields: [streamId], references: [id])
+
+  @@index([userId])
+  @@index([waveRef])
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentType {
+  STREAM_ACCESS
+  GIFT
+  WITHDRAWAL
+}
+
+// ── Auth ───────────────────────────────────────────────────────────────
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

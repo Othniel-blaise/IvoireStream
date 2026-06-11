@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IvoireStream — Brand Kit</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green:  #19E680;
+  --green2: #00C060;
+  --orange: #FF8C00;
+  --gold:   #FFD166;
+  --red:    #FF3B55;
+  --dark:   #0F0F14;
+  --dark2:  #0A120E;
+  --dark3:  #112119;
+  --surf:   #1A3026;
+  --ivory:  #F6F8F7;
+  --gray:   #7A8A82;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--dark);
+  color: var(--ivory);
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1.6;
+}
+
+/* ── Layout ── */
+.page { max-width: 1200px; margin: 0 auto; padding: 0 48px 120px; }
+.section { margin-bottom: 100px; }
+.section-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 10px;
+}
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 900;
+  font-size: 32px;
+  color: var(--ivory);
+  margin-bottom: 6px;
+}
+.section-sub {
+  font-size: 14px;
+  color: var(--gray);
+  margin-bottom: 48px;
+}
+.divider {
+  height: 1px;
+  background: rgba(255,255,255,.06);
+  margin: 80px 0;
+}
+
+/* ── HERO ── */
+.hero {
+  padding: 80px 0 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  position: relative;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(25,230,128,.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--green);
+  background: rgba(25,230,128,.08);
+  border: 1px solid rgba(25,230,128,.2);
+  padding: 6px 14px;
+  border-radius: 6px;
+  display: inline-block;
+}
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 900;
+  font-size: 56px;
+  background: linear-gradient(135deg, var(--green) 0%, var(--green2) 40%, var(--orange) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.05;
+}
+.hero-sub {
+  font-size: 16px;
+  color: var(--gray);
+  max-width: 480px;
+}
+.hero-version {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: rgba(255,255,255,.25);
+  margin-top: 8px;
+}
+
+/* ── Logo Variants ── */
+.logo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.logo-card {
+  border-radius: 20px;
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.logo-card.dark-card {
+  background: #0A120E;
+  border: 1px solid rgba(255,255,255,.06);
+}
+.logo-card.light-card {
+  background: #F6F8F7;
+  border: 1px solid rgba(0,0,0,.08);
+}
+.logo-card.icon-card {
+  background: linear-gradient(145deg, #0A120E, #1A3026);
+  border: 1px solid rgba(25,230,128,.12);
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+}
+.logo-card.mono-card {
+  background: #0A0A0F;
+  border: 1px solid rgba(255,255,255,.05);
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+.logo-card-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  position: absolute;
+  bottom: 16px;
+  left: 20px;
+  color: var(--gray);
+}
+.logo-card.light-card .logo-card-label { color: #9A9A9A; }
+.logo-card-use {
+  font-size: 11px;
+  color: rgba(255,255,255,.35);
+  position: absolute;
+  bottom: 16px;
+  right: 20px;
+}
+.logo-card.light-card .logo-card-use { color: rgba(0,0,0,.3); }
+
+/* Inline SVG logos */
+.logo-svg { width: 100%; max-width: 460px; }
+.icon-svg { width: 120px; height: 120px; }
+.icon-svg-large { width: 160px; height: 160px; }
+
+/* ── Color Palette ── */
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.color-card {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.05);
+}
+.color-swatch {
+  height: 88px;
+}
+.color-info {
+  background: #141414;
+  padding: 14px 16px;
+}
+.color-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ivory);
+  margin-bottom: 2px;
+}
+.color-hex {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--gray);
+}
+.color-role {
+  font-size: 10px;
+  color: rgba(255,255,255,.3);
+  margin-top: 2px;
+}
+
+/* ── Typography ── */
+.typo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+.typo-card {
+  background: #0A0A0F;
+  border: 1px solid rgba(255,255,255,.05);
+  border-radius: 16px;
+  padding: 28px 24px;
+}
+.typo-sample-heading {
+  font-family: 'Syne', sans-serif;
+  font-weight: 900;
+  font-size: 36px;
+  background: linear-gradient(135deg, var(--green), var(--orange));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+.typo-sample-mono {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--green);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+.typo-sample-body {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--gray);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+.typo-label-tag {
+  display: inline-block;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--green);
+  background: rgba(25,230,128,.08);
+  border: 1px solid rgba(25,230,128,.2);
+  padding: 4px 10px;
+  border-radius: 5px;
+  margin-top: 6px;
+}
+.typo-desc {
+  font-size: 11px;
+  color: rgba(255,255,255,.3);
+  line-height: 1.6;
+}
+
+/* ── Usage Do / Don't ── */
+.usage-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.usage-card {
+  border-radius: 16px;
+  padding: 28px 24px;
+}
+.usage-card.do {
+  background: rgba(25,230,128,.04);
+  border: 1px solid rgba(25,230,128,.15);
+}
+.usage-card.dont {
+  background: rgba(255,59,85,.04);
+  border: 1px solid rgba(255,59,85,.15);
+}
+.usage-header {
+  font-family: 'Syne', sans-serif;
+  font-weight: 900;
+  font-size: 15px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.usage-card.do .usage-header { color: var(--green); }
+.usage-card.dont .usage-header { color: var(--red); }
+.usage-rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: rgba(255,255,255,.65);
+  line-height: 1.5;
+}
+.usage-bullet { flex-shrink: 0; margin-top: 2px; }
+.usage-card.do .usage-bullet { color: var(--green); }
+.usage-card.dont .usage-bullet { color: var(--red); }
+
+/* ── Brand Voice ── */
+.voice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.voice-card {
+  background: #0A0A0F;
+  border: 1px solid rgba(255,255,255,.05);
+  border-radius: 16px;
+  padding: 24px 20px;
+}
+.voice-word {
+  font-family: 'Syne', sans-serif;
+  font-weight: 900;
+  font-size: 22px;
+  background: linear-gradient(135deg, var(--green), var(--orange));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+.voice-desc {
+  font-size: 12px;
+  color: var(--gray);
+  line-height: 1.6;
+}
+
+/* ── Clearspace ── */
+.clearspace-demo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed rgba(25,230,128,.3);
+  padding: 40px;
+  border-radius: 8px;
+  position: relative;
+  margin: 24px 0;
+}
+.cs-arrows {
+  position: absolute;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  color: var(--green);
+  letter-spacing: 1px;
+}
+.cs-top    { top: 6px;    left: 50%; transform: translateX(-50%); }
+.cs-bottom { bottom: 6px; left: 50%; transform: translateX(-50%); }
+.cs-left   { left: 6px;   top: 50%;  transform: translateY(-50%) rotate(-90deg); }
+.cs-right  { right: 6px;  top: 50%;  transform: translateY(-50%) rotate(90deg); }
+.clearspace-note {
+  font-size: 12px;
+  color: var(--gray);
+  margin-top: 12px;
+}
+
+/* ── Footer ── */
+footer {
+  border-top: 1px solid rgba(255,255,255,.05);
+  padding: 48px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 900;
+  font-size: 22px;
+  background: linear-gradient(135deg, var(--green), var(--orange));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.footer-meta {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  color: rgba(255,255,255,.2);
+  letter-spacing: 2px;
+  text-align: right;
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ═══════════════ HERO ═══════════════ -->
+  <div class="hero section">
+    <span class="hero-eyebrow">Brand Identity System · v1.0</span>
+    <h1 class="hero-title">IvoireStream<br>Brand Kit</h1>
+    <p class="hero-sub">
+      Identité visuelle officielle de la plateforme de streaming live 100% ivoirienne.
+      Ce document rassemble les ressources de marque pour toute utilisation entrepreneuriale.
+    </p>
+    <span class="hero-version">Mai 2026 · Confidentiel</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ═══════════════ LOGOS ═══════════════ -->
+  <div class="section">
+    <div class="section-label">01 — Logo</div>
+    <div class="section-title">Identité Principale</div>
+    <div class="section-sub">Logo horizontal · Le signe ⚡ bolt + wordmark. Toujours utiliser les fichiers SVG fournis.</div>
+
+    <div class="logo-grid">
+
+      <!-- Dark version -->
+      <div class="logo-card dark-card" style="grid-column: span 2;">
+        <svg class="logo-svg" viewBox="0 0 620 130" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bG1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#19E680"/>
+              <stop offset="55%"  stop-color="#00C060"/>
+              <stop offset="100%" stop-color="#FF8C00"/>
+            </linearGradient>
+            <linearGradient id="wG1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stop-color="#19E680"/>
+              <stop offset="50%"  stop-color="#00C060"/>
+              <stop offset="100%" stop-color="#FF8C00"/>
+            </linearGradient>
+            <filter id="glow1">
+              <feGaussianBlur stdDeviation="4" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <rect x="16" y="20" width="90" height="90" rx="22" fill="#0A120E"/>
+          <rect x="16" y="20" width="90" height="90" rx="22" fill="none" stroke="#19E680" stroke-width="1.2" opacity="0.28"/>
+          <g transform="translate(23, 28) scale(0.74)" filter="url(#glow1)">
+            <path d="M 66 4 L 24 52 L 40 52 L 26 96 L 76 48 L 60 48 Z" fill="url(#bG1)"/>
+          </g>
+          <text x="124" y="80" font-family="Syne,'Arial Black',sans-serif" font-weight="900" font-size="52" fill="url(#wG1)">IvoireStream</text>
+          <text x="126" y="104" font-family="'Space Mono','Courier New',monospace" font-size="9.5" fill="#7A8A82" letter-spacing="3.5">STREAM · IVOIRIEN · LIVE</text>
+        </svg>
+        <span class="logo-card-label">Logo Principal — Fond sombre</span>
+        <span class="logo-card-use">ivoirestream-primary.svg</span>
+      </div>
+
+      <!-- Light version -->
+      <div class="logo-card light-card" style="grid-column: span 2;">
+        <svg class="logo-svg" viewBox="0 0 620 130" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bG2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#19E680"/>
+              <stop offset="55%" stop-color="#00C060"/>
+              <stop offset="100%" stop-color="#FF8C00"/>
+            </linearGradient>
+            <linearGradient id="bBord" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#19E680"/>
+              <stop offset="100%" stop-color="#FF8C00"/>
+            </linearGradient>
+            <linearGradient id="wG2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#0A8A48"/>
+              <stop offset="50%" stop-color="#007A38"/>
+              <stop offset="100%" stop-color="#CC6000"/>
+            </linearGradient>
+          </defs>
+          <rect x="16" y="20" width="90" height="90" rx="22" fill="#FFFFFF"/>
+          <rect x="16" y="20" width="90" height="90" rx="22" fill="none" stroke="url(#bBord)" stroke-width="2"/>
+          <g transform="translate(23, 28) scale(0.74)">
+            <path d="M 66 4 L 24 52 L 40 52 L 26 96 L 76 48 L 60 48 Z" fill="url(#bG2)"/>
+          </g>
+          <text x="124" y="80" font-family="Syne,'Arial Black',sans-serif" font-weight="900" font-size="52" fill="url(#wG2)">IvoireStream</text>
+          <text x="126" y="104" font-family="'Space Mono','Courier New',monospace" font-size="9.5" fill="#5A6A62" letter-spacing="3.5">STREAM · IVOIRIEN · LIVE</text>
+        </svg>
+        <span class="logo-card-label" style="color:#9A9A9A">Logo — Fond clair</span>
+        <span class="logo-card-use" style="color:rgba(0,0,0,.3)">ivoirestream-light.svg</span>
+      </div>
+
+      <!-- App Icon -->
+      <div class="logo-card icon-card">
+        <svg class="icon-svg-large" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="ibg3" cx="38%" cy="32%" r="72%">
+              <stop offset="0%" stop-color="#1A3026"/>
+              <stop offset="100%" stop-color="#060A07"/>
+            </radialGradient>
+            <radialGradient id="iamb3" cx="50%" cy="46%" r="50%">
+              <stop offset="0%" stop-color="#19E680" stop-opacity="0.18"/>
+              <stop offset="100%" stop-color="#19E680" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="ibolt3" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#19E680"/>
+              <stop offset="55%" stop-color="#00C060"/>
+              <stop offset="100%" stop-color="#FF8C00"/>
+            </linearGradient>
+            <linearGradient id="ibord3" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#19E680" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#FF8C00" stop-opacity="0.4"/>
+            </linearGradient>
+            <filter id="ig3">
+              <feGaussianBlur stdDeviation="14" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="ig3t">
+              <feGaussianBlur stdDeviation="5" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <rect width="512" height="512" rx="112" fill="url(#ibg3)"/>
+          <rect width="512" height="512" rx="112" fill="url(#iamb3)"/>
+          <rect width="512" height="512" rx="112" fill="none" stroke="url(#ibord3)" stroke-width="3"/>
+          <g transform="translate(81, 81) scale(3.5)" filter="url(#ig3)">
+            <path d="M 66 4 L 24 52 L 40 52 L 26 96 L 76 48 L 60 48 Z" fill="url(#ibolt3)" opacity="0.7"/>
+          </g>
+          <g transform="translate(81, 81) scale(3.5)" filter="url(#ig3t)">
+            <path d="M 66 4 L 24 52 L 40 52 L 26 96 L 76 48 L 60 48 Z" fill="url(#ibolt3)"/>
+          </g>
+        </svg>
+        <span class="logo-card-label">App Icon · 512×512</span>
+        <span class="logo-card-use">ivoirestream-icon.svg</span>
+      </div>
+
+      <!-- Wordmark only -->
+      <div class="logo-card mono-card">
+        <svg viewBox="0 0 480 90" width="380" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="wG3" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#19E680"/>
+              <stop offset="48%" stop-color="#00C060"/>
+              <stop offset="100%" stop-color="#FF8C00"/>
+            </linearGradient>
+          </defs>
+          <text x="2" y="58" font-family="Syne,'Arial Black',sans-serif" font-weight="900" font-size="52" fill="url(#wG3)">IvoireStream</text>
+          <text x="4" y="80" font-family="'Space Mono','Courier New',monospace" font-size="9.5" fill="#7A8A82" letter-spacing="3.5">STREAM · IVOIRIEN · LIVE</text>
+        </svg>
+        <span class="logo-card-label">Wordmark seul</span>
+        <span class="logo-card-use">ivoirestream-wordmark.svg</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ═══════════════ COULEURS ═══════════════ -->
+  <div class="section">
+    <div class="section-label">02 — Couleurs</div>
+    <div class="section-title">Palette Officielle</div>
+    <div class="section-sub">Le vert primaire et l'orange accent réfèrent aux couleurs du drapeau ivoirien 🇨🇮</div>
+
+    <div class="palette-grid">
+      <div class="color-card">
+        <div class="color-swatch" style="background:#19E680"></div>
+        <div class="color-info">
+          <div class="color-name">Ivory Green</div>
+          <div class="color-hex">#19E680</div>
+          <div class="color-role">Primaire · CTA · Actif</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#00C060"></div>
+        <div class="color-info">
+          <div class="color-name">Deep Green</div>
+          <div class="color-hex">#00C060</div>
+          <div class="color-role">Gradient mid · Hover</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#FF8C00"></div>
+        <div class="color-info">
+          <div class="color-name">Orange Ivoirien</div>
+          <div class="color-hex">#FF8C00</div>
+          <div class="color-role">Accent · Gradient end</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#FFD166"></div>
+        <div class="color-info">
+          <div class="color-name">Gold Premium</div>
+          <div class="color-hex">#FFD166</div>
+          <div class="color-role">Live privé · Cadeaux</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#FF3B55"></div>
+        <div class="color-info">
+          <div class="color-name">Live Red</div>
+          <div class="color-hex">#FF3B55</div>
+          <div class="color-role">Badge LIVE · Alerte</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#0F0F14; border:1px solid rgba(255,255,255,.08);"></div>
+        <div class="color-info">
+          <div class="color-name">Night</div>
+          <div class="color-hex">#0F0F14</div>
+          <div class="color-role">Background principal</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#0A120E; border:1px solid rgba(255,255,255,.08);"></div>
+        <div class="color-info">
+          <div class="color-name">Forest Dark</div>
+          <div class="color-hex">#0A120E</div>
+          <div class="color-role">Icon bg · Surface sombre</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background:#F6F8F7; border:1px solid rgba(0,0,0,.08);"></div>
+        <div class="color-info" style="background:#1A1A1A;">
+          <div class="color-name">Ivory White</div>
+          <div class="color-hex">#F6F8F7</div>
+          <div class="color-role">Texte principal · Light bg</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gradient showcase -->
+    <div style="margin-top:28px; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,.06);">
+      <div style="height:60px; background:linear-gradient(90deg, #19E680, #00C060, #FF8C00)"></div>
+      <div style="padding:16px 20px; background:#0A0A0F; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:13px; color:var(--ivory)">Gradient Principal</div>
+          <div style="font-family:'Space Mono',monospace; font-size:10px; color:var(--gray); margin-top:2px">#19E680 → #00C060 → #FF8C00</div>
+        </div>
+        <div style="font-size:11px; color:var(--gray)">Logo · Dégradés · Accents</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ═══════════════ TYPOGRAPHIE ═══════════════ -->
+  <div class="section">
+    <div class="section-label">03 — Typographie</div>
+    <div class="section-title">Système de Polices</div>
+    <div class="section-sub">3 polices complémentaires · Toutes disponibles gratuitement sur Google Fonts</div>
+
+    <div class="typo-grid">
+      <div class="typo-card">
+        <div class="typo-sample-heading">Syne<br>Black</div>
+        <div class="typo-label-tag">Google Fonts · Syne 900</div>
+        <p class="typo-desc" style="margin-top:12px">
+          Logo, titres, boutons CTA. Poids 900 uniquement.
+          Caractère fort, moderne, mémorable.
+        </p>
+      </div>
+      <div class="typo-card">
+        <div class="typo-sample-mono">STREAM<br>IVOIRIEN<br>LIVE · 2026</div>
+        <div class="typo-label-tag">Google Fonts · Space Mono 400/700</div>
+        <p class="typo-desc" style="margin-top:12px">
+          Labels, badges, données techniques, tags.
+          Apporte une touche tech et stream gaming.
+        </p>
+      </div>
+      <div class="typo-card">
+        <div class="typo-sample-body">
+          IvoireStream est la première plateforme de streaming live dédiée aux créateurs ivoiriens. Stream, gagne, connecte.
+        </div>
+        <div class="typo-label-tag">Google Fonts · DM Sans 300–700</div>
+        <p class="typo-desc" style="margin-top:12px">
+          Corps de texte, paragraphes, descriptions.
+          Lisible, neutre, universel.
+        </p>
+      </div>
+    </div>
+
+    <!-- Type scale -->
+    <div style="margin-top:28px; background:#0A0A0F; border:1px solid rgba(255,255,255,.05); border-radius:16px; padding:28px 28px 8px;">
+      <div style="font-family:'Space Mono',monospace; font-size:9px; color:var(--gray); letter-spacing:3px; text-transform:uppercase; margin-bottom:20px">Échelle Typographique</div>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div style="display:flex; align-items:baseline; gap:20px; border-bottom:1px solid rgba(255,255,255,.04); padding-bottom:14px;">
+          <span style="font-family:'Space Mono',monospace; font-size:9px; color:var(--gray); width:60px; flex-shrink:0">H1 · 56px</span>
+          <span style="font-family:'Syne',sans-serif; font-weight:900; font-size:56px; background:linear-gradient(90deg,#19E680,#FF8C00); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1">Live</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:20px; border-bottom:1px solid rgba(255,255,255,.04); padding-bottom:14px;">
+          <span style="font-family:'Space Mono',monospace; font-size:9px; color:var(--gray); width:60px; flex-shrink:0">H2 · 36px</span>
+          <span style="font-family:'Syne',sans-serif; font-weight:900; font-size:36px; color:var(--ivory)">Streaming Ivoirien</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:20px; border-bottom:1px solid rgba(255,255,255,.04); padding-bottom:14px;">
+          <span style="font-family:'Space Mono',monospace; font-size:9px; color:var(--gray); width:60px; flex-shrink:0">H3 · 22px</span>
+          <span style="font-family:'Syne',sans-serif; font-weight:800; font-size:22px; color:var(--ivory)">Crée. Diffuse. Monétise.</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:20px; border-bottom:1px solid rgba(255,255,255,.04); padding-bottom:14px;">
+          <span style="font-family:'Space Mono',monospace; font-size:9px; color:var(--gray); width:60px; flex-shrink:0">Label · 9px</span>
+          <span style="font-family:'Space Mono',monospace; font-size:9px; color:var(--green); letter-spacing:4px; text-transform:uppercase">STREAM · IVOIRIEN · LIVE</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:20px; padding-bottom:14px;">
+          <span style="font-family:'Space Mono',monospace; font-size:9px; color:var(--gray); width:60px; flex-shrink:0">Body · 14px</span>
+          <span style="font-size:14px; color:var(--gray)">La vibe d'Abidjan, en live, pour tout le monde.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ═══════════════ USAGE ═══════════════ -->
+  <div class="section">
+    <div class="section-label">04 — Usage</div>
+    <div class="section-title">Règles d'Utilisation</div>
+    <div class="section-sub">Pour garantir la cohérence de la marque sur tous les supports</div>
+
+    <div class="usage-grid">
+      <div class="usage-card do">
+        <div class="usage-header">✓ À FAIRE</div>
+        <div class="usage-rule">
+          <span class="usage-bullet">✓</span>
+          Utiliser le logo SVG fourni, sans modification de forme ni de proportion
+        </div>
+        <div class="usage-rule">
+          <span class="usage-bullet">✓</span>
+          Placer le logo sur fond sombre (#0F0F14, noir) ou fond clair (#F6F8F7, blanc)
+        </div>
+        <div class="usage-rule">
+          <span class="usage-bullet">✓</span>
+          Respecter un espace libre autour du logo égal à la hauteur du bolt ⚡
+        </div>
+        <div class="usage-rule">
+          <span class="usage-bullet">✓</span>
+          Utiliser l'icône seule (sans wordmark) en dessous de 40px de hauteur
+        </div>
+        <div class="usage-rule">
+          <span class="usage-bullet">✓</span>
+          Utiliser les couleurs du gradient vert → orange pour tous les accents de marque
+        </div>
+        <div class="usage-rule">
+          <span class="usage-bullet">✓</span>
+          Tagline en majuscules, police Space Mono, letter-spacing 3.5px
+        </div>
+      </div>
+
+      <div class="usage-card dont">
+        <div class="usage-header">✗ À NE PAS FAIRE</div>
+        <div class="usage-rule">
+          <span class="usage-bullet">✗</span>
+          Ne pas modifier les couleurs du logo (pas de rouge, bleu, rose…)
+        </div>
+        <div class="usage-rule">
+          <span class="usage-bullet">✗</span>
+          Ne pas déformer, étirer ou comprimer le logo
+        </div>
+        <div class="usage-rule">
+          <span class="usage-bullet">✗</span>
+          Ne pas placer le logo sur des fonds colorés sans vérification du contraste
+        </div>
+        <div class="usage-rule">
+          <span class="usage-bullet">✗</span>
+          Ne pas ajouter d'ombre portée ou d'effets externes non spécifiés
+        </div>
+        <div class="usage-rule">
+          <span class="usage-bullet">✗</span>
+          Ne pas recréer le logo avec une autre police que Syne 900
+        </div>
+        <div class="usage-rule">
+          <span class="usage-bullet">✗</span>
+          Ne pas séparer le bolt du wordmark pour des usages autres que l'icône app
+        </div>
+      </div>
+    </div>
+
+    <!-- Clearspace -->
+    <div style="margin-top:48px;">
+      <div style="font-family:'Space Mono',monospace; font-size:9px; color:var(--gray); letter-spacing:3px; text-transform:uppercase; margin-bottom:16px">Espace de Protection</div>
+      <div class="clearspace-demo">
+        <span class="cs-arrows cs-top">X</span>
+        <span class="cs-arrows cs-bottom">X</span>
+        <span class="cs-arrows cs-left">X</span>
+        <span class="cs-arrows cs-right">X</span>
+        <svg viewBox="0 0 240 50" width="240" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="csb" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#19E680"/>
+              <stop offset="100%" stop-color="#FF8C00"/>
+            </linearGradient>
+            <linearGradient id="csw" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#19E680"/>
+              <stop offset="100%" stop-color="#FF8C00"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="4" width="36" height="36" rx="9" fill="#0A120E"/>
+          <rect x="2" y="4" width="36" height="36" rx="9" fill="none" stroke="#19E680" stroke-width="0.8" opacity="0.3"/>
+          <g transform="translate(8, 9) scale(0.3)">
+            <path d="M 66 4 L 24 52 L 40 52 L 26 96 L 76 48 L 60 48 Z" fill="url(#csb)"/>
+          </g>
+          <text x="44" y="30" font-family="Syne,'Arial Black',sans-serif" font-weight="900" font-size="22" fill="url(#csw)">IvoireStream</text>
+        </svg>
+      </div>
+      <p class="clearspace-note">X = hauteur du bolt icon. Aucun élément graphique dans cette zone.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ═══════════════ BRAND VOICE ═══════════════ -->
+  <div class="section">
+    <div class="section-label">05 — Brand Voice</div>
+    <div class="section-title">Personnalité de Marque</div>
+    <div class="section-sub">Comment IvoireStream parle, pense et se comporte</div>
+
+    <div class="voice-grid">
+      <div class="voice-card">
+        <div class="voice-word">Authentique</div>
+        <p class="voice-desc">On parle nouchi, on stream depuis Yopougon ou le Plateau. On est ivoirien, on l'assume. Aucun filtre sur la culture locale.</p>
+      </div>
+      <div class="voice-card">
+        <div class="voice-word">Électrique</div>
+        <p class="voice-desc">Chaque live est un événement. Le bolt ⚡ représente cette énergie brute : urgence, spontanéité, vie. On ne diffuse pas, on enflammer.</p>
+      </div>
+      <div class="voice-card">
+        <div class="voice-word">Ambitieux</div>
+        <p class="voice-desc">Platform 100% ivoirienne avec des ambitions panafricaines. On construit l'avenir du divertissement numérique africain dès maintenant.</p>
+      </div>
+      <div class="voice-card">
+        <div class="voice-word">Inclusif</div>
+        <p class="voice-desc">Artistes, DJs, coachs, cuisiniers, comiques — toute la diversité ivoirienne a sa place. Un seul prérequis : être toi-même.</p>
+      </div>
+      <div class="voice-card">
+        <div class="voice-word">Premium</div>
+        <p class="voice-desc">Le gold (#FFD166) symbolise le créateur qui réussit. Les lives privés, les cadeaux, le wallet — on valorise le travail des créateurs.</p>
+      </div>
+      <div class="voice-card">
+        <div class="voice-word">Connecté</div>
+        <p class="voice-desc">Wave, Mobile Money, Orange Money — on intègre les outils que les Ivoiriens utilisent vraiment. No PayPal, no barriers.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ═══════════════ FICHIERS ═══════════════ -->
+  <div class="section">
+    <div class="section-label">06 — Assets</div>
+    <div class="section-title">Fichiers Fournis</div>
+    <div class="section-sub">Pack SVG · Scalable · Utilisables immédiatement sur tous supports</div>
+
+    <div style="display:grid; grid-template-columns: repeat(4,1fr); gap:14px;">
+      <div style="background:#0A0A0F; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:20px; text-align:center;">
+        <div style="font-size:28px; margin-bottom:10px">🌑</div>
+        <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:12px; color:var(--ivory); margin-bottom:4px">Logo Dark</div>
+        <div style="font-family:'Space Mono',monospace; font-size:9px; color:var(--gray)">ivoirestream-primary.svg</div>
+        <div style="font-size:10px; color:rgba(255,255,255,.25); margin-top:6px">620 × 130px</div>
+      </div>
+      <div style="background:#F6F8F7; border:1px solid rgba(0,0,0,.08); border-radius:14px; padding:20px; text-align:center;">
+        <div style="font-size:28px; margin-bottom:10px">☀️</div>
+        <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:12px; color:#0F0F14; margin-bottom:4px">Logo Light</div>
+        <div style="font-family:'Space Mono',monospace; font-size:9px; color:#7A8A82">ivoirestream-light.svg</div>
+        <div style="font-size:10px; color:rgba(0,0,0,.3); margin-top:6px">620 × 130px</div>
+      </div>
+      <div style="background:#0A120E; border:1px solid rgba(25,230,128,.12); border-radius:14px; padding:20px; text-align:center;">
+        <div style="font-size:28px; margin-bottom:10px">⚡</div>
+        <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:12px; color:var(--ivory); margin-bottom:4px">App Icon</div>
+        <div style="font-family:'Space Mono',monospace; font-size:9px; color:var(--gray)">ivoirestream-icon.svg</div>
+        <div style="font-size:10px; color:rgba(255,255,255,.25); margin-top:6px">512 × 512px</div>
+      </div>
+      <div style="background:#0A0A0F; border:1px solid rgba(255,255,255,.05); border-radius:14px; padding:20px; text-align:center;">
+        <div style="font-size:28px; margin-bottom:10px">✏️</div>
+        <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:12px; color:var(--ivory); margin-bottom:4px">Wordmark</div>
+        <div style="font-family:'Space Mono',monospace; font-size:9px; color:var(--gray)">ivoirestream-wordmark.svg</div>
+        <div style="font-size:10px; color:rgba(255,255,255,.25); margin-top:6px">480 × 90px</div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px; background:rgba(25,230,128,.04); border:1px solid rgba(25,230,128,.12); border-radius:12px; padding:16px 20px; font-size:12px; color:rgba(255,255,255,.5); line-height:1.7;">
+      <strong style="color:var(--green)">Astuce Figma/Illustrator :</strong> Pour convertir les polices en tracés (outlines) et rendre le logo utilisable sans dépendance de font, ouvrir le SVG dans Figma puis <em>Object → Flatten</em>, ou dans Illustrator <em>Type → Create Outlines (Ctrl+Shift+O)</em>.
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>
+      <div class="footer-logo">⚡ IvoireStream</div>
+      <div style="font-size:11px; color:rgba(255,255,255,.25); margin-top:4px">LA PLATEFORME DE STREAMING 100% IVOIRIENNE</div>
+    </div>
+    <div class="footer-meta">
+      BRAND KIT v1.0<br>
+      MAI 2026<br>
+      USAGE CONFIDENTIEL
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

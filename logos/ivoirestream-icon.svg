@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="IvoireStream App Icon">
+  <defs>
+    <!-- Background gradient (dark green, rich depth) -->
+    <radialGradient id="bgRad" cx="38%" cy="32%" r="72%">
+      <stop offset="0%"   stop-color="#1A3026"/>
+      <stop offset="100%" stop-color="#060A07"/>
+    </radialGradient>
+
+    <!-- Green ambient glow behind bolt -->
+    <radialGradient id="ambientGlow" cx="50%" cy="46%" r="50%">
+      <stop offset="0%"   stop-color="#19E680" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#19E680" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Bolt gradient -->
+    <linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#19E680"/>
+      <stop offset="55%"  stop-color="#00C060"/>
+      <stop offset="100%" stop-color="#FF8C00"/>
+    </linearGradient>
+
+    <!-- Soft glow on bolt -->
+    <filter id="boltGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="14" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Hard glow for crispness -->
+    <filter id="boltGlowTight" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Border gradient -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#19E680" stop-opacity="0.5"/>
+      <stop offset="50%"  stop-color="#19E680" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#FF8C00" stop-opacity="0.4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ─── Rounded square background ─── -->
+  <rect width="512" height="512" rx="112" fill="url(#bgRad)"/>
+  <rect width="512" height="512" rx="112" fill="url(#ambientGlow)"/>
+  <rect width="512" height="512" rx="112" fill="none"
+        stroke="url(#borderGrad)" stroke-width="3"/>
+
+  <!--
+    Bolt path (100×100 normalized):
+    M 66 4  L 24 52  L 40 52  L 26 96  L 76 48  L 60 48  Z
+
+    Scale 3.5 → bolt: 182px wide, 322px tall
+    Center of bolt in 100-space: ~(50, 50)
+    Center in scaled space: (175, 175)
+    Translate to center in 512: (256−175, 256−175) = (81, 81)
+  -->
+
+  <!-- Wide glow layer -->
+  <g transform="translate(81, 81) scale(3.5)" filter="url(#boltGlow)">
+    <path d="M 66 4 L 24 52 L 40 52 L 26 96 L 76 48 L 60 48 Z"
+          fill="url(#boltGrad)" opacity="0.7"/>
+  </g>
+
+  <!-- Crisp bolt -->
+  <g transform="translate(81, 81) scale(3.5)" filter="url(#boltGlowTight)">
+    <path d="M 66 4 L 24 52 L 40 52 L 26 96 L 76 48 L 60 48 Z"
+          fill="url(#boltGrad)"/>
+  </g>
+</svg>
