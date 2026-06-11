@@ -23,6 +23,35 @@ const USER_SELECT = {
 
 export default async function usersRoutes(app: FastifyInstance) {
 
+  // ── GET /api/users?page=1&limit=20&q=search ──────────────────────────
+  app.get('/', async (req, reply) => {
+    const { page, limit } = paginationSchema.parse(req.query);
+    const { q } = req.query as { q?: string };
+
+    const where = q
+      ? { OR: [
+          { username: { contains: q, mode: 'insensitive' as const } },
+          { handle:   { contains: q, mode: 'insensitive' as const } },
+        ]}
+      : {};
+
+    const [users, total] = await prisma.$transaction([
+      prisma.user.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { followersCount: 'desc' },
+        select: USER_SELECT,
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    return reply.send({
+      success: true,
+      data: { users, total, page, pages: Math.ceil(total / limit) },
+    });
+  });
+
   // ── GET /api/users/me ────────────────────────────────────────────────
   app.get('/me', { preHandler: authenticate }, async (req, reply) => {
     const { userId } = req.user as { userId: string };
