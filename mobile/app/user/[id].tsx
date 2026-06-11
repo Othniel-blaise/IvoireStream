@@ -40,14 +40,33 @@ export default function UserProfileScreen() {
 
   async function toggleFollow() {
     if (!user || fwPending) return;
+
+    const wasFollowing = user.isFollowing ?? false;
+
+    // Mise à jour immédiate
+    setUser(u => u ? {
+      ...u,
+      isFollowing: !wasFollowing,
+      followersCount: wasFollowing
+        ? Math.max(0, u.followersCount - 1)
+        : u.followersCount + 1,
+    } : u);
+
     setFwPending(true);
 
-    if (user.isFollowing) {
-      const res = await apiDelete(`/api/users/${user.id}/follow`);
-      if (res.success) setUser(u => u ? { ...u, isFollowing: false, followersCount: Math.max(0, u.followersCount - 1) } : u);
-    } else {
-      const res = await apiPost(`/api/users/${user.id}/follow`);
-      if (res.success) setUser(u => u ? { ...u, isFollowing: true, followersCount: u.followersCount + 1 } : u);
+    const res = wasFollowing
+      ? await apiDelete(`/api/users/${user.id}/follow`)
+      : await apiPost(`/api/users/${user.id}/follow`);
+
+    // Revert si erreur
+    if (!res.success) {
+      setUser(u => u ? {
+        ...u,
+        isFollowing: wasFollowing,
+        followersCount: wasFollowing
+          ? u.followersCount + 1
+          : Math.max(0, u.followersCount - 1),
+      } : u);
     }
 
     setFwPending(false);

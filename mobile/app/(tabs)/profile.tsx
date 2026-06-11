@@ -15,7 +15,7 @@ import { formatCount, MOCK_PAST_LIVES } from '../../constants/mock-data';
 const PROFILE_TABS = ['Lives passés', 'Planifiés', 'À propos'] as const;
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuthStore();
+  const { user, logout, updateUser } = useAuthStore();
   const [tab,        setTab]        = useState(0);
   const [showEdit,   setShowEdit]   = useState(false);
   const [editName,   setEditName]   = useState(user?.username ?? '');
@@ -23,7 +23,13 @@ export default function ProfileScreen() {
   const [editEmoji,  setEditEmoji]  = useState(user?.avatarEmoji ?? '👤');
   const [saving,     setSaving]     = useState(false);
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.dark, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color={Colors.green} size="large" />
+      </View>
+    );
+  }
 
   async function handleLogout() {
     Alert.alert('Déconnexion', 'Tu veux vraiment te déconnecter ?', [
@@ -48,6 +54,7 @@ export default function ProfileScreen() {
     });
     setSaving(false);
     if (res.success) {
+      updateUser({ username: editName.trim(), bio: editBio.trim(), avatarEmoji: editEmoji });
       setShowEdit(false);
     } else {
       Alert.alert('Erreur', res.error ?? 'Impossible de sauvegarder');

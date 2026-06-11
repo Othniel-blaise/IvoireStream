@@ -10,14 +10,37 @@ interface AuthStore {
   isLoading:       boolean;
   error:           string | null;
 
-  initialize: () => Promise<void>;
-  login:      (emailOrPhone: string, password: string) => Promise<void>;
-  logout:     () => Promise<void>;
-  clearError: () => void;
+  initialize:  () => Promise<void>;
+  login:       (emailOrPhone: string, password: string) => Promise<void>;
+  register:    (data: RegisterData) => Promise<void>;
+  logout:      () => Promise<void>;
+  updateUser:  (partial: Partial<User>) => void;
+  clearError:  () => void;
+}
+
+interface RegisterData {
+  username:    string;
+  handle:      string;
+  email:       string;
+  password:    string;
+  phone?:      string;
+  avatarEmoji: string;
+}
+
+// Fetch avec timeout de 90s (Render free tier peut mettre 60s à démarrer)
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 90_000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    return res;
+  } finally {
+    clearTimeout(id);
+  }
 }
 
 async function apiPost(path: string, body: object, token?: string) {
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetchWithTimeout(`${API_URL}${path}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -29,79 +52,116 @@ async function apiPost(path: string, body: object, token?: string) {
 }
 
 async function apiGet(path: string, token: string) {
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetchWithTimeout(`${API_URL}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.json();
 }
 
-export const useAuthStore = create<AuthStore>((set) => ({
-  user:            null,
-  accessToken:     null,
-  isAuthenticated: false,
-  isLoading:       false,
-  error:           null,
+function saveSession(set: (s: Partial<AuthStore>) => void) {
+  return async (user: User, accessToken: string, refreshToken: string) => {
+    await SecureStore.setItemAsync('refreshToken', refreshToken);
+    set({ user, accessToken, isAuthenticated: true, isLoading: false, error: null });
+  };
+}
 
-  // ── Vérifie le token stocké au démarrage ─────────────────────────────
-  initialize: async () => {
-    set({ isLoading: true });
-    try {
-      const refreshToken = await SecureStore.getItemAsync('refreshToken');
-      if (!refreshToken) { set({ isLoading: false }); return; }
+export const useAuthStore = create<AuthStore>((set) => {
+  const persistSession = saveSession(set as (s: Partial<AuthStore>) => void);
 
-      const json = await apiPost('/api/auth/refresh', { refreshToken });
-      if (!json.success) {
-        await SecureStore.deleteItemAsync('refreshToken');
+  return {
+    user:            null,
+    accessToken:     null,
+    isAuthenticated: false,
+    isLoading:       false,
+    error:           null,
+
+    // ── Restaure la session au démarrage ─────────────────────────────────
+    initialize: async () => {
+      set({ isLoading: true });
+      try {
+        const refreshToken = await SecureStore.getItemAsync('refreshToken');
+        if (!refreshToken) { set({ isLoading: false }); return; }
+
+        const json = await apiPost('/api/auth/refresh', { refreshToken });
+        if (!json.success) {
+          await SecureStore.deleteItemAsync('refreshToken');
+          set({ isLoading: false });
+          return;
+        }
+
+        const { accessToken, refreshToken: newRefresh } = json.data;
+        await SecureStore.setItemAsync('refreshToken', newRefresh);
+
+        const me = await apiGet('/api/auth/me', accessToken);
+        if (me.success) {
+          set({ user: me.data.user, accessToken, isAuthenticated: true });
+        }
+      } catch {
+        // Serveur en veille ou réseau coupé — on laisse se reconnecter
+      } finally {
         set({ isLoading: false });
-        return;
       }
+    },
 
-      const { accessToken, refreshToken: newRefresh } = json.data;
-      await SecureStore.setItemAsync('refreshToken', newRefresh);
-
-      const me = await apiGet('/api/auth/me', accessToken);
-      if (me.success) {
-        set({ user: me.data.user, accessToken, isAuthenticated: true });
+    // ── Login ─────────────────────────────────────────────────────────────
+    login: async (emailOrPhone, password) => {
+      set({ isLoading: true, error: null });
+      try {
+        const json = await apiPost('/api/auth/login', { emailOrPhone, password });
+        if (!json.success) {
+          set({ error: json.error ?? 'Identifiants incorrects', isLoading: false });
+          return;
+        }
+        await persistSession(json.data.user, json.data.accessToken, json.data.refreshToken);
+      } catch (e: unknown) {
+        const isTimeout = e instanceof Error && e.name === 'AbortError';
+        set({
+          error: isTimeout
+            ? 'Le serveur démarre, réessaie dans 30 secondes...'
+            : 'Impossible de se connecter. Vérifie ta connexion réseau.',
+          isLoading: false,
+        });
       }
-    } catch {
-      // Réseau indisponible — on laisse l'utilisateur se reconnecter
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+    },
 
-  // ── Login ─────────────────────────────────────────────────────────────
-  login: async (emailOrPhone, password) => {
-    set({ isLoading: true, error: null });
-    try {
-      const json = await apiPost('/api/auth/login', { emailOrPhone, password });
-      if (!json.success) {
-        set({ error: json.error ?? 'Identifiants incorrects', isLoading: false });
-        return;
+    // ── Register ──────────────────────────────────────────────────────────
+    register: async (data) => {
+      set({ isLoading: true, error: null });
+      try {
+        const json = await apiPost('/api/auth/register', {
+          ...data,
+          handle: data.handle.startsWith('@') ? data.handle : `@${data.handle}`,
+        });
+        if (!json.success) {
+          set({ error: json.error ?? 'Inscription échouée', isLoading: false });
+          return;
+        }
+        await persistSession(json.data.user, json.data.accessToken, json.data.refreshToken);
+      } catch (e: unknown) {
+        const isTimeout = e instanceof Error && e.name === 'AbortError';
+        set({
+          error: isTimeout
+            ? 'Le serveur démarre, réessaie dans 30 secondes...'
+            : 'Impossible de se connecter. Vérifie ta connexion réseau.',
+          isLoading: false,
+        });
       }
-      const { user, accessToken, refreshToken } = json.data;
-      await SecureStore.setItemAsync('refreshToken', refreshToken);
-      set({ user, accessToken, isAuthenticated: true, isLoading: false, error: null });
-    } catch {
-      set({
-        error: 'Impossible de se connecter. Vérifie ta connexion réseau.',
-        isLoading: false,
-      });
-    }
-  },
+    },
 
-  // ── Logout ────────────────────────────────────────────────────────────
-  logout: async () => {
-    try {
-      const refreshToken = await SecureStore.getItemAsync('refreshToken');
-      if (refreshToken) {
-        await apiPost('/api/auth/logout', { refreshToken });
-        await SecureStore.deleteItemAsync('refreshToken');
+    // ── Logout ────────────────────────────────────────────────────────────
+    logout: async () => {
+      try {
+        const refreshToken = await SecureStore.getItemAsync('refreshToken');
+        if (refreshToken) {
+          await apiPost('/api/auth/logout', { refreshToken });
+          await SecureStore.deleteItemAsync('refreshToken');
+        }
+      } catch { /* ignore */ } finally {
+        set({ user: null, accessToken: null, isAuthenticated: false, error: null });
       }
-    } catch { /* ignore */ } finally {
-      set({ user: null, accessToken: null, isAuthenticated: false, error: null });
-    }
-  },
+    },
 
-  clearError: () => set({ error: null }),
-}));
+    updateUser: (partial) => set(s => ({ user: s.user ? { ...s.user, ...partial } : null })),
+    clearError: () => set({ error: null }),
+  };
+});

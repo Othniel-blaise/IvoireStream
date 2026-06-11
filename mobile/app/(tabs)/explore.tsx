@@ -50,26 +50,34 @@ export default function ExploreScreen() {
 
   async function toggleFollow(user: ApiUser) {
     if (pending[user.id]) return;
+
+    const wasFollowing = user.isFollowing ?? false;
+
+    // Mise à jour immédiate de l'UI (optimiste)
+    setUsers(prev => prev.map(u => u.id === user.id ? {
+      ...u,
+      isFollowing: !wasFollowing,
+      followersCount: wasFollowing
+        ? Math.max(0, u.followersCount - 1)
+        : u.followersCount + 1,
+    } : u));
+
     setPending(p => ({ ...p, [user.id]: true }));
 
-    const wasFollowing = user.isFollowing;
+    // Appel API en arrière-plan
+    const res = wasFollowing
+      ? await apiDelete(`/api/users/${user.id}/follow`)
+      : await apiPost(`/api/users/${user.id}/follow`);
 
-    if (wasFollowing) {
-      const res = await apiDelete(`/api/users/${user.id}/follow`);
-      if (res.success) {
-        setUsers(prev => prev.map(u => u.id === user.id
-          ? { ...u, isFollowing: false, followersCount: Math.max(0, u.followersCount - 1) }
-          : u
-        ));
-      }
-    } else {
-      const res = await apiPost(`/api/users/${user.id}/follow`);
-      if (res.success) {
-        setUsers(prev => prev.map(u => u.id === user.id
-          ? { ...u, isFollowing: true, followersCount: u.followersCount + 1 }
-          : u
-        ));
-      }
+    // Revert si erreur
+    if (!res.success) {
+      setUsers(prev => prev.map(u => u.id === user.id ? {
+        ...u,
+        isFollowing: wasFollowing,
+        followersCount: wasFollowing
+          ? u.followersCount + 1
+          : Math.max(0, u.followersCount - 1),
+      } : u));
     }
 
     setPending(p => ({ ...p, [user.id]: false }));
