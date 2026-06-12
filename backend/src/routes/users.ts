@@ -105,6 +105,13 @@ export default async function usersRoutes(app: FastifyInstance) {
   app.get('/:id', async (req, reply) => {
     const { id } = req.params as { id: string };
 
+    // Auth optionnelle pour renvoyer isFollowing
+    let currentUserId: string | null = null;
+    try {
+      await req.jwtVerify();
+      currentUserId = (req.user as { userId: string }).userId;
+    } catch { /* non authentifié, pas grave */ }
+
     const user = await prisma.user.findUnique({
       where: { id },
       select: USER_SELECT,
@@ -112,7 +119,15 @@ export default async function usersRoutes(app: FastifyInstance) {
 
     if (!user) return reply.code(404).send({ success: false, error: 'Utilisateur introuvable' });
 
-    return reply.send({ success: true, data: { user } });
+    let isFollowing = false;
+    if (currentUserId && currentUserId !== id) {
+      const follow = await prisma.follow.findUnique({
+        where: { followerId_followedId: { followerId: currentUserId, followedId: id } },
+      });
+      isFollowing = !!follow;
+    }
+
+    return reply.send({ success: true, data: { user: { ...user, isFollowing } } });
   });
 
   // ── POST /api/users/:id/follow ───────────────────────────────────────
