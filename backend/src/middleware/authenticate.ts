@@ -4,6 +4,6 @@ export async function authenticate(req: FastifyRequest, reply: FastifyReply) {
   try {
     await req.jwtVerify();
   } catch {
-    reply.code(401).send({ success: false, error: 'Non authentifié' });
+    return reply.code(401).send({ success: false, error: 'Non authentifié' });
   }
 }

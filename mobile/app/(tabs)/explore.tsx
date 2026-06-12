@@ -71,6 +71,7 @@ export default function ExploreScreen() {
 
     // Revert si erreur
     if (!res.success) {
+      console.warn('[follow] échec API:', res.error);
       setUsers(prev => prev.map(u => u.id === user.id ? {
         ...u,
         isFollowing: wasFollowing,

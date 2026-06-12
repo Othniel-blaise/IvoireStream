@@ -81,7 +81,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
     const accessToken = app.jwt.sign(
       { userId: user.id, role: user.role },
-      { expiresIn: '15m' },
+      { expiresIn: '2h' },
     );
 
     const rawRefresh = generateRefreshToken();
@@ -123,7 +123,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
     const accessToken = app.jwt.sign(
       { userId: user.id, role: user.role },
-      { expiresIn: '15m' },
+      { expiresIn: '2h' },
     );
 
     const rawRefresh = generateRefreshToken();
@@ -162,7 +162,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
     const accessToken = app.jwt.sign(
       { userId: stored.user.id, role: stored.user.role },
-      { expiresIn: '15m' },
+      { expiresIn: '2h' },
     );
 
     // Rotate refresh token

@@ -91,10 +91,12 @@ export const useAuthStore = create<AuthStore>((set) => {
 
         const { accessToken, refreshToken: newRefresh } = json.data;
         await SecureStore.setItemAsync('refreshToken', newRefresh);
+        // Stocker le token immédiatement — même si /me échoue, le retry API aura le bon token
+        set({ accessToken });
 
         const me = await apiGet('/api/auth/me', accessToken);
         if (me.success) {
-          set({ user: me.data.user, accessToken, isAuthenticated: true });
+          set({ user: me.data.user, isAuthenticated: true });
         }
       } catch {
         // Serveur en veille ou réseau coupé — on laisse se reconnecter

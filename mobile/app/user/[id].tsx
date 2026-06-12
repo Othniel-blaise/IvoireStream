@@ -60,6 +60,7 @@ export default function UserProfileScreen() {
 
     // Revert si erreur
     if (!res.success) {
+      console.warn('[follow/profile] échec API:', res.error);
       setUser(u => u ? {
         ...u,
         isFollowing: wasFollowing,
