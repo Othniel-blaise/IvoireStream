@@ -1,26 +1,61 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
+import {
+  View, Text, StyleSheet, TouchableOpacity,
+  Switch, Alert, ActivityIndicator,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import { Colors, Gradients, Typography, Spacing, Radius } from '../../constants/theme';
+import { Colors, Typography, Spacing, Radius } from '../../constants/theme';
+import { useStreamStore } from '../../store/stream.store';
 
-const CATEGORIES = ['🎤 Musique', '💄 Beauté', '💻 Tech', '🍛 Cuisine', '😂 Comédie', '📚 Éducation'];
+const CATEGORIES = [
+  { label: 'Musique',   value: 'MUSIC',     emoji: '🎤' },
+  { label: 'Beauté',    value: 'BEAUTY',    emoji: '💄' },
+  { label: 'Tech',      value: 'TECH',      emoji: '💻' },
+  { label: 'Cuisine',   value: 'COOKING',   emoji: '🍛' },
+  { label: 'Comédie',   value: 'COMEDY',    emoji: '😂' },
+  { label: 'Éducation', value: 'EDUCATION', emoji: '📚' },
+];
 
 export default function GoLiveScreen() {
-  const [title,    setTitle]    = useState('');
-  const [isPrivate, setPrivate] = useState(false);
-  const [price,    setPrice]    = useState('2000');
-  const [category, setCategory] = useState(0);
+  const { startLive, isLoading, error, clearError } = useStreamStore();
+
+  const [title,     setTitle]    = useState('');
+  const [isPrivate, setPrivate]  = useState(false);
+  const [price,     setPrice]    = useState('2000');
+  const [catIndex,  setCatIndex] = useState(0);
+
+  async function handleLaunch() {
+    if (!title.trim()) return;
+
+    const session = await startLive({
+      title:      title.trim(),
+      emoji:      CATEGORIES[catIndex].emoji,
+      category:   CATEGORIES[catIndex].value,
+      visibility: isPrivate ? 'PRIVATE' : 'PUBLIC',
+      priceXOF:   isPrivate ? (parseInt(price, 10) || 2000) : undefined,
+    });
+
+    if (!session) {
+      Alert.alert('Erreur', error ?? 'Impossible de lancer le live');
+      clearError();
+      return;
+    }
+
+    router.push(`/live/${session.stream.id}`);
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <LinearGradient colors={['#0A120E', Colors.dark]} style={StyleSheet.absoluteFill} />
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}><Text style={styles.cancel}>Annuler</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.cancel}>Annuler</Text>
+        </TouchableOpacity>
         <Text style={styles.title}>Démarrer un Live</Text>
         <View style={{ width: 60 }} />
       </View>
@@ -28,8 +63,10 @@ export default function GoLiveScreen() {
       <View style={styles.content}>
         {/* Preview */}
         <View style={styles.preview}>
-          <Text style={styles.previewEmoji}>📱</Text>
-          <View style={styles.previewBadge}><Text style={styles.previewBadgeText}>APERÇU</Text></View>
+          <Text style={styles.previewEmoji}>{CATEGORIES[catIndex].emoji}</Text>
+          <View style={styles.previewBadge}>
+            <Text style={styles.previewBadgeText}>APERÇU</Text>
+          </View>
         </View>
 
         {/* Form */}
@@ -42,21 +79,21 @@ export default function GoLiveScreen() {
             maxLength={60}
           />
 
-          {/* Category */}
           <Text style={styles.sectionLabel}>CATÉGORIE</Text>
           <View style={styles.categories}>
             {CATEGORIES.map((cat, i) => (
               <TouchableOpacity
-                key={cat}
-                onPress={() => setCategory(i)}
-                style={[styles.catChip, i === category && styles.catActive]}
+                key={cat.value}
+                onPress={() => setCatIndex(i)}
+                style={[styles.catChip, i === catIndex && styles.catActive]}
               >
-                <Text style={[styles.catText, i === category && styles.catTextActive]}>{cat}</Text>
+                <Text style={[styles.catText, i === catIndex && styles.catTextActive]}>
+                  {cat.emoji} {cat.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          {/* Privacy toggle */}
           <View style={styles.row}>
             <View>
               <Text style={styles.rowLabel}>Live Privé 🔒</Text>
@@ -81,13 +118,13 @@ export default function GoLiveScreen() {
           )}
         </View>
 
-        {/* CTA */}
         <Button
-          label="⚡  Lancer le Live"
-          onPress={() => router.push('/live/new')}
+          label={isLoading ? '⏳  Lancement...' : '⚡  Lancer le Live'}
+          onPress={handleLaunch}
           fullWidth
-          disabled={!title.trim()}
+          disabled={!title.trim() || isLoading}
         />
+        {isLoading && <ActivityIndicator color={Colors.green} style={{ marginTop: 8 }} />}
       </View>
     </SafeAreaView>
   );
@@ -96,71 +133,42 @@ export default function GoLiveScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.dark },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.base, paddingVertical: Spacing.md,
   },
   cancel: { fontFamily: Typography.fontBody, fontSize: Typography.sizes.base, color: Colors.gray },
-  title: { fontFamily: 'SpaceMono_400Regular', fontSize: Typography.sizes.base, fontWeight: '900', color: Colors.ivory },
+  title:  { fontFamily: 'SpaceMono_400Regular', fontSize: Typography.sizes.base, fontWeight: '900', color: Colors.ivory },
   content: { flex: 1, padding: Spacing.base, gap: Spacing.lg },
   preview: {
-    height: 180,
-    backgroundColor: Colors.dark3,
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
+    height: 180, backgroundColor: Colors.dark3, borderRadius: Radius.xl,
+    borderWidth: 1, borderColor: Colors.border,
+    alignItems: 'center', justifyContent: 'center',
+    position: 'relative', overflow: 'hidden',
   },
   previewEmoji: { fontSize: 48 },
   previewBadge: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
+    position: 'absolute', top: 12, left: 12,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6,
   },
-  previewBadgeText: {
-    fontFamily: 'SpaceMono_400Regular',
-    fontSize: 9,
-    color: Colors.gray,
-    letterSpacing: 2,
-  },
+  previewBadgeText: { fontFamily: 'SpaceMono_400Regular', fontSize: 9, color: Colors.gray, letterSpacing: 2 },
   form: { gap: Spacing.md, flex: 1 },
-  sectionLabel: {
-    fontFamily: 'SpaceMono_400Regular',
-    fontSize: Typography.sizes.xs,
-    color: Colors.gray,
-    letterSpacing: 2,
-  },
+  sectionLabel: { fontFamily: 'SpaceMono_400Regular', fontSize: Typography.sizes.xs, color: Colors.gray, letterSpacing: 2 },
   categories: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   catChip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.dark3,
+    paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
+    borderRadius: Radius.full, borderWidth: 1,
+    borderColor: Colors.border, backgroundColor: Colors.dark3,
   },
-  catActive: { borderColor: Colors.green, backgroundColor: 'rgba(25,230,128,0.08)' },
-  catText: { fontFamily: Typography.fontBody, fontSize: Typography.sizes.sm, color: Colors.gray },
+  catActive:     { borderColor: Colors.green, backgroundColor: 'rgba(25,230,128,0.08)' },
+  catText:       { fontFamily: Typography.fontBody, fontSize: Typography.sizes.sm, color: Colors.gray },
   catTextActive: { color: Colors.green },
   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: Colors.dark3,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    backgroundColor: Colors.dark3, borderRadius: Radius.lg,
+    padding: Spacing.md, borderWidth: 1, borderColor: Colors.border,
   },
   rowLabel: { fontFamily: Typography.fontBody, fontSize: Typography.sizes.base, fontWeight: '600', color: Colors.ivory },
-  rowDesc: { fontFamily: Typography.fontBody, fontSize: Typography.sizes.xs, color: Colors.gray, marginTop: 2 },
+  rowDesc:  { fontFamily: Typography.fontBody, fontSize: Typography.sizes.xs, color: Colors.gray, marginTop: 2 },
 });

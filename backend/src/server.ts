@@ -6,6 +6,7 @@ import rateLimit from '@fastify/rate-limit';
 import { prisma } from './lib/prisma';
 import authRoutes from './routes/auth';
 import usersRoutes from './routes/users';
+import streamsRoutes from './routes/streams';
 
 export async function buildServer() {
   const app = Fastify({
@@ -50,8 +51,9 @@ export async function buildServer() {
   }));
 
   // ── Routes ──────────────────────────────────────────────────────────
-  await app.register(authRoutes,  { prefix: '/api/auth' });
-  await app.register(usersRoutes, { prefix: '/api/users' });
+  await app.register(authRoutes,    { prefix: '/api/auth' });
+  await app.register(usersRoutes,   { prefix: '/api/users' });
+  await app.register(streamsRoutes, { prefix: '/api/streams' });
 
   // ── Graceful shutdown ───────────────────────────────────────────────
   app.addHook('onClose', async () => {

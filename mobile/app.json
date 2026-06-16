@@ -13,14 +13,23 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "ci.ivoirestream.app"
+      "bundleIdentifier": "ci.ivoirestream.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "IvoireStream a besoin de la caméra pour diffuser ton live.",
+        "NSMicrophoneUsageDescription": "IvoireStream a besoin du micro pour diffuser ton live."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0A120E"
       },
       "package": "ci.ivoirestream.app",
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "bundler": "metro",
