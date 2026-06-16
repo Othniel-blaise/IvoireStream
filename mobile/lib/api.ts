@@ -3,9 +3,10 @@ import { API_URL } from '../constants/api';
 
 type ApiResponse<T = unknown> = { success: boolean; data?: T; error?: string };
 
-function getHeaders(token?: string | null): HeadersInit {
+function getHeaders(token?: string | null, hasBody = false): HeadersInit {
   return {
-    'Content-Type': 'application/json',
+    // N'envoyer Content-Type que s'il y a un body — sinon Fastify parse JSON vide → 400
+    ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
@@ -16,9 +17,10 @@ async function request<T>(
 ): Promise<ApiResponse<T>> {
   try {
     const token = useAuthStore.getState().accessToken;
+    const hasBody = options.body != null;
     const res = await fetch(`${API_URL}${path}`, {
       ...options,
-      headers: { ...getHeaders(token), ...options.headers },
+      headers: { ...getHeaders(token, hasBody), ...options.headers },
     });
 
     // Token expiré → on rafraîchit et on réessaie une fois
@@ -28,7 +30,7 @@ async function request<T>(
       if (newToken) {
         const retry = await fetch(`${API_URL}${path}`, {
           ...options,
-          headers: { ...getHeaders(newToken), ...options.headers },
+          headers: { ...getHeaders(newToken, hasBody), ...options.headers },
         });
         return retry.json();
       }
