@@ -8,9 +8,9 @@ const APP_ID   = process.env.AGORA_APP_ID!;
 const APP_CERT = process.env.AGORA_APP_CERTIFICATE!;
 const TOKEN_TTL = 7200; // 2h en secondes
 
-function makeToken(channelName: string, uid: number, role: RtcRole): string {
+function makeToken(channelName: string, uid: number, role: number): string {
   const expiredTs = Math.floor(Date.now() / 1000) + TOKEN_TTL;
-  return RtcTokenBuilder.buildTokenWithUid(APP_ID, APP_CERT, channelName, uid, role, expiredTs);
+  return RtcTokenBuilder.buildTokenWithUid(APP_ID, APP_CERT, channelName, uid, role, expiredTs, 0);
 }
 
 const createSchema = z.object({
