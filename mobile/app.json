@@ -9,6 +9,8 @@
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0F0F14",
     "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
       "backgroundColor": "#0A120E"
     },
     "ios": {
@@ -21,6 +23,8 @@
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png",
         "backgroundColor": "#0A120E"
       },
       "package": "ci.ivoirestream.app",
@@ -43,6 +47,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5fc94628-6723-496a-a9f4-16eb0945200d"
+      }
     }
   }
 }
