@@ -5,14 +5,14 @@ import Avatar from '../ui/Avatar';
 import Badge from '../ui/Badge';
 import { Colors, Typography, Radius, Spacing } from '../../constants/theme';
 import { formatCount } from '../../constants/mock-data';
-import type { LiveStream } from '../../types';
+import type { ApiStream } from '../../store/stream.store';
 
 interface Props {
-  stream: LiveStream;
+  stream: ApiStream;
 }
 
 export default function LiveCard({ stream }: Props) {
-  const isPrivate = stream.visibility === 'private';
+  const isPrivate = stream.visibility === 'PRIVATE';
 
   return (
     <TouchableOpacity

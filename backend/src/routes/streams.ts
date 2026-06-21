@@ -117,7 +117,8 @@ export default async function streamsRoutes(app: FastifyInstance) {
       include: { host: { select: HOST_SELECT } },
     });
 
-    if (!stream) return reply.code(404).send({ success: false, error: 'Stream introuvable' });
+    if (!stream)       return reply.code(404).send({ success: false, error: 'Stream introuvable' });
+    if (!stream.isLive) return reply.code(410).send({ success: false, error: 'Ce live est terminé' });
 
     const agoraToken = makeToken(stream.id, 0, RtcRole.SUBSCRIBER);
 

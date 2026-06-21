@@ -9,6 +9,7 @@ import Avatar from '../../components/ui/Avatar';
 import { Colors, Typography, Spacing, Radius } from '../../constants/theme';
 import { apiGet, apiPost, apiDelete } from '../../lib/api';
 import { formatCount } from '../../constants/mock-data';
+import { useAuthStore } from '../../store/auth.store';
 
 interface ApiUser {
   id: string;
@@ -25,6 +26,7 @@ interface ApiUser {
 
 export default function UserProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { user: me, updateUser } = useAuthStore();
   const [user,       setUser]       = useState<ApiUser | null>(null);
   const [loading,    setLoading]    = useState(true);
   const [tab,        setTab]        = useState(0);
@@ -58,8 +60,13 @@ export default function UserProfileScreen() {
       ? await apiDelete(`/api/users/${user.id}/follow`)
       : await apiPost(`/api/users/${user.id}/follow`);
 
-    // Revert si erreur
-    if (!res.success) {
+    if (res.success) {
+      // Met à jour le followingCount du compte connecté
+      updateUser({
+        followingCount: Math.max(0, (me?.followingCount ?? 0) + (wasFollowing ? -1 : 1)),
+      });
+    } else {
+      // Revert si erreur
       console.warn('[follow/profile] échec API:', res.error);
       setUser(u => u ? {
         ...u,

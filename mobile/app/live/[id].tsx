@@ -15,6 +15,7 @@ import {
   RtcSurfaceView,
   VideoSourceType,
 } from 'react-native-agora';
+import { apiDelete } from '../../lib/api';
 import Avatar from '../../components/ui/Avatar';
 import Badge from '../../components/ui/Badge';
 import { Colors, Typography, Spacing, Radius } from '../../constants/theme';
@@ -59,17 +60,21 @@ export default function LiveScreen() {
   const sessionData = isHost ? hostSession : null;
 
   // ── State ────────────────────────────────────────────────────────────
-  const [stream,    setStream]    = useState<ApiStream | null>(sessionData?.stream ?? null);
-  const [unlocked,  setUnlocked]  = useState(true);
-  const [message,   setMessage]   = useState('');
-  const [comments,  setComments]  = useState<Comment[]>([]);
-  const [elapsed,   setElapsed]   = useState(0);
-  const [remoteUid, setRemoteUid] = useState<number | null>(null);
-  const [engineReady, setEngineReady] = useState(false);
-  const [loadingStream, setLoadingStream] = useState(!isHost);
+  const [stream,         setStream]         = useState<ApiStream | null>(sessionData?.stream ?? null);
+  const [unlocked,       setUnlocked]       = useState(true);
+  const [message,        setMessage]        = useState('');
+  const [comments,       setComments]       = useState<Comment[]>([]);
+  const [elapsed,        setElapsed]        = useState(0);
+  const [remoteUid,      setRemoteUid]      = useState<number | null>(null);
+  const [engineReady,    setEngineReady]    = useState(false);
+  const [loadingStream,  setLoadingStream]  = useState(!isHost);
+  const [isFollowingHost, setIsFollowingHost] = useState(false);
+  const [followPending,   setFollowPending]   = useState(false);
 
-  const engineRef = useRef<IRtcEngine | null>(null);
-  const listRef   = useRef<FlatList<Comment>>(null);
+  const engineRef        = useRef<IRtcEngine | null>(null);
+  const listRef          = useRef<FlatList<Comment>>(null);
+  const endedManuallyRef = useRef(false);  // true si l'hôte a appuyé "Terminer"
+  const hasSeenHostRef   = useRef(false);  // true dès que le broadcaster a rejoint
 
   // ── Chronomètre ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -90,7 +95,7 @@ export default function LiveScreen() {
       }>(`/api/streams/${id}`);
 
       if (!res.success || !res.data) {
-        Alert.alert('Erreur', 'Stream introuvable');
+        Alert.alert('Erreur', res.error ?? 'Stream introuvable');
         router.back();
         return;
       }
@@ -99,6 +104,12 @@ export default function LiveScreen() {
       setStream(s);
       if (s.visibility === 'PRIVATE') setUnlocked(false);
       setLoadingStream(false);
+
+      // Vérifie si le viewer suit déjà l'hôte
+      const hostRes = await apiGet<{ user: { isFollowing?: boolean } }>(`/api/users/${s.hostId}`);
+      if (hostRes.success && hostRes.data) {
+        setIsFollowingHost(hostRes.data.user.isFollowing ?? false);
+      }
 
       // Incrémenter le compteur de viewers
       await apiPost(`/api/streams/${id}/view`);
@@ -131,7 +142,10 @@ export default function LiveScreen() {
 
     if (asHost) engine.startPreview();
 
-    engine.addListener('onUserJoined', (_conn, uid) => setRemoteUid(uid));
+    engine.addListener('onUserJoined', (_conn, uid) => {
+      hasSeenHostRef.current = true;
+      setRemoteUid(uid);
+    });
     engine.addListener('onUserOffline', (_conn, _uid) => setRemoteUid(null));
     engine.addListener('onError', (err) => console.warn('[Agora] error:', err));
 
@@ -151,8 +165,42 @@ export default function LiveScreen() {
       engineRef.current?.leaveChannel();
       engineRef.current?.release();
       engineRef.current = null;
+      // Si l'hôte quitte sans appuyer "Terminer" (fermeture app, navigation),
+      // on clôture le live côté serveur pour éviter les lives fantômes en DB.
+      const { hostSession, endLive } = useStreamStore.getState();
+      if (hostSession?.stream.id === id && !endedManuallyRef.current) {
+        endLive(id as string);
+      }
     };
   }, []);
+
+  // ── Détection fin de live pour le viewer ─────────────────────────────
+  useEffect(() => {
+    // Ne s'active qu'une fois qu'on a vu l'hôte et qu'il disparaît
+    if (isHost || !engineReady || loadingStream) return;
+    if (!hasSeenHostRef.current || remoteUid !== null) return;
+
+    // L'hôte vient de se déconnecter — on vérifie après 4s si le live est fini
+    const timer = setTimeout(async () => {
+      const res = await apiGet<{ stream: ApiStream }>(`/api/streams/${id}`);
+      if (!res.success || !res.data?.stream.isLive) {
+        Alert.alert(
+          '📡 Live terminé',
+          "L'hôte a terminé ce live.",
+          [{
+            text: 'Retour',
+            onPress: () => {
+              engineRef.current?.leaveChannel();
+              router.back();
+            },
+          }],
+          { cancelable: false },
+        );
+      }
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [remoteUid, isHost, engineReady, loadingStream]);
 
   // ── Actions ───────────────────────────────────────────────────────────
   async function handleEndLive() {
@@ -162,6 +210,7 @@ export default function LiveScreen() {
         text: 'Terminer',
         style: 'destructive',
         onPress: async () => {
+          endedManuallyRef.current = true;
           await endLive(id);
           engineRef.current?.leaveChannel();
           router.back();
@@ -173,6 +222,18 @@ export default function LiveScreen() {
   function handleLeave() {
     engineRef.current?.leaveChannel();
     router.back();
+  }
+
+  async function handleFollowHost() {
+    if (!stream || followPending) return;
+    const wasFollowing = isFollowingHost;
+    setIsFollowingHost(!wasFollowing);
+    setFollowPending(true);
+    const res = wasFollowing
+      ? await apiDelete(`/api/users/${stream.host.id}/follow`)
+      : await apiPost(`/api/users/${stream.host.id}/follow`);
+    if (!res.success) setIsFollowingHost(wasFollowing);
+    setFollowPending(false);
   }
 
   function sendMessage() {
@@ -292,8 +353,18 @@ export default function LiveScreen() {
             <Text style={styles.viewerCount}>👁 {formatCount(stream?.viewerCount ?? 0)}</Text>
           </View>
           {!isHost && (
-            <TouchableOpacity style={styles.followBtn}>
-              <Text style={styles.followTxt}>Suivre</Text>
+            <TouchableOpacity
+              style={[styles.followBtn, isFollowingHost && styles.followingBtn]}
+              onPress={handleFollowHost}
+              disabled={followPending}
+              activeOpacity={0.8}
+            >
+              {followPending
+                ? <ActivityIndicator color={isFollowingHost ? Colors.gray : Colors.dark2} size="small" />
+                : <Text style={[styles.followTxt, isFollowingHost && styles.followingTxt]}>
+                    {isFollowingHost ? '✓ Abonné' : 'Suivre'}
+                  </Text>
+              }
             </TouchableOpacity>
           )}
         </View>
@@ -422,9 +493,14 @@ const styles = StyleSheet.create({
   viewerCount: { fontFamily: Typography.fontBody, fontSize: 9, color: 'rgba(255,255,255,0.55)' },
   followBtn: {
     backgroundColor: Colors.green, borderRadius: Radius.full,
-    paddingHorizontal: 10, paddingVertical: 4,
+    paddingHorizontal: 10, paddingVertical: 4, minWidth: 60, alignItems: 'center',
   },
-  followTxt: { fontFamily: Typography.fontBody, fontSize: 10, fontWeight: '700', color: Colors.dark2 },
+  followingBtn: {
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)',
+  },
+  followTxt:    { fontFamily: Typography.fontBody, fontSize: 10, fontWeight: '700', color: Colors.dark2 },
+  followingTxt: { color: 'rgba(255,255,255,0.65)' },
   topRight:  { flexDirection: 'row', alignItems: 'center', gap: 6 },
   timer: {
     fontFamily: 'SpaceMono_400Regular', fontSize: 10, color: 'rgba(255,255,255,0.55)',

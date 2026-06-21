@@ -27,6 +27,10 @@ interface RegisterData {
   avatarEmoji: string;
 }
 
+// Singleton : une seule promesse initialize() en vol — empêche la race condition
+// sur la rotation des refresh tokens (plusieurs 401 simultanés → double consume)
+let _initPromise: Promise<void> | null = null;
+
 // Fetch avec timeout de 90s (Render free tier peut mettre 60s à démarrer)
 async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 90_000) {
   const controller = new AbortController();
@@ -77,32 +81,40 @@ export const useAuthStore = create<AuthStore>((set) => {
 
     // ── Restaure la session au démarrage ─────────────────────────────────
     initialize: async () => {
-      set({ isLoading: true });
-      try {
-        const refreshToken = await SecureStore.getItemAsync('refreshToken');
-        if (!refreshToken) { set({ isLoading: false }); return; }
+      // Renvoie la promesse en cours si un refresh est déjà en vol —
+      // évite la race condition : deux 401 simultanés qui consommeraient
+      // le même refresh token et supprimeraient le suivant du SecureStore.
+      if (_initPromise) return _initPromise;
 
-        const json = await apiPost('/api/auth/refresh', { refreshToken });
-        if (!json.success) {
-          await SecureStore.deleteItemAsync('refreshToken');
+      _initPromise = (async () => {
+        set({ isLoading: true });
+        try {
+          const refreshToken = await SecureStore.getItemAsync('refreshToken');
+          if (!refreshToken) return;
+
+          const json = await apiPost('/api/auth/refresh', { refreshToken });
+          if (!json.success) {
+            await SecureStore.deleteItemAsync('refreshToken');
+            return;
+          }
+
+          const { accessToken, refreshToken: newRefresh } = json.data;
+          await SecureStore.setItemAsync('refreshToken', newRefresh);
+          set({ accessToken });
+
+          const me = await apiGet('/api/auth/me', accessToken);
+          if (me.success) {
+            set({ user: me.data.user, isAuthenticated: true });
+          }
+        } catch {
+          // Serveur en veille ou réseau coupé — token conservé pour la prochaine ouverture
+        } finally {
           set({ isLoading: false });
-          return;
+          _initPromise = null;
         }
+      })();
 
-        const { accessToken, refreshToken: newRefresh } = json.data;
-        await SecureStore.setItemAsync('refreshToken', newRefresh);
-        // Stocker le token immédiatement — même si /me échoue, le retry API aura le bon token
-        set({ accessToken });
-
-        const me = await apiGet('/api/auth/me', accessToken);
-        if (me.success) {
-          set({ user: me.data.user, isAuthenticated: true });
-        }
-      } catch {
-        // Serveur en veille ou réseau coupé — on laisse se reconnecter
-      } finally {
-        set({ isLoading: false });
-      }
+      return _initPromise;
     },
 
     // ── Login ─────────────────────────────────────────────────────────────

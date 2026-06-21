@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, RefreshControl,
+  TouchableOpacity, RefreshControl, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
 import StoryReel from '../../components/feed/StoryReel';
 import LiveCard from '../../components/feed/LiveCard';
-import { useFeedStore } from '../../store/feed.store';
-import type { LiveStream } from '../../types';
+import { useStreamStore } from '../../store/stream.store';
+import { MOCK_STORIES } from '../../constants/mock-data';
 
 const TABS = [
   { key: 'forYou',        label: 'Pour toi' },
@@ -15,18 +16,26 @@ const TABS = [
   { key: 'subscriptions', label: 'Abonnements' },
 ] as const;
 
+type TabKey = typeof TABS[number]['key'];
+
 export default function FeedScreen() {
-  const { streams, stories, activeTab, setTab } = useFeedStore();
+  const { streams, fetchStreams, isLoading } = useStreamStore();
+  const [activeTab,  setActiveTab]  = useState<TabKey>('forYou');
   const [refreshing, setRefreshing] = useState(false);
+
+  // Charge les lives réels à chaque fois qu'on revient sur cet écran
+  useFocusEffect(
+    useCallback(() => { fetchStreams(); }, [fetchStreams])
+  );
 
   async function onRefresh() {
     setRefreshing(true);
-    await new Promise(r => setTimeout(r, 1000));
+    await fetchStreams();
     setRefreshing(false);
   }
 
-  const filtered = streams.filter((s: LiveStream) => {
-    if (activeTab === 'live') return s.isLive && s.visibility === 'public';
+  const filtered = streams.filter(s => {
+    if (activeTab === 'live') return s.isLive && s.visibility === 'PUBLIC';
     return true;
   });
 
@@ -58,14 +67,14 @@ export default function FeedScreen() {
         }
       >
         {/* ── Stories ── */}
-        <StoryReel stories={stories} />
+        <StoryReel stories={MOCK_STORIES} />
 
         {/* ── Tabs ── */}
         <View style={styles.tabsRow}>
           {TABS.map(t => (
             <TouchableOpacity
               key={t.key}
-              onPress={() => setTab(t.key)}
+              onPress={() => setActiveTab(t.key)}
               style={styles.tab}
               activeOpacity={0.7}
             >
@@ -79,12 +88,25 @@ export default function FeedScreen() {
 
         {/* ── Cards ── */}
         <View style={styles.cardList}>
-          {filtered.map((stream: LiveStream) => (
-            <LiveCard key={stream.id} stream={stream} />
-          ))}
+          {isLoading && streams.length === 0 ? (
+            <ActivityIndicator color="#19E680" style={{ marginTop: 40 }} />
+          ) : filtered.length === 0 ? (
+            <View style={styles.empty}>
+              <Text style={styles.emptyEmoji}>📡</Text>
+              <Text style={styles.emptyText}>
+                {activeTab === 'live'
+                  ? 'Aucun live en cours'
+                  : 'Aucun contenu pour l\'instant'}
+              </Text>
+              <Text style={styles.emptyHint}>Tire vers le bas pour rafraîchir</Text>
+            </View>
+          ) : (
+            filtered.map(stream => (
+              <LiveCard key={stream.id} stream={stream} />
+            ))
+          )}
         </View>
 
-        {/* Bottom padding for tab bar */}
         <View style={{ height: 20 }} />
       </ScrollView>
 
@@ -167,5 +189,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 14,
     gap: 14,
+  },
+
+  // Empty state
+  empty: {
+    alignItems: 'center',
+    paddingVertical: 56,
+    gap: 8,
+  },
+  emptyEmoji: {
+    fontSize: 42,
+  },
+  emptyText: {
+    fontFamily: 'SpaceMono_400Regular',
+    fontSize: 14,
+    color: '#F6F8F7',
+    fontWeight: '700',
+  },
+  emptyHint: {
+    fontSize: 12,
+    color: '#7A8A82',
+    fontFamily: 'SpaceMono_400Regular',
   },
 });

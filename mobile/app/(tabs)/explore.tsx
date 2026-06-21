@@ -4,7 +4,7 @@ import {
   TouchableOpacity, TextInput, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Colors, Typography, Spacing, Radius } from '../../constants/theme';
 import { useAuthStore } from '../../store/auth.store';
 import { apiGet, apiPost, apiDelete } from '../../lib/api';
@@ -24,7 +24,7 @@ interface ApiUser {
 }
 
 export default function ExploreScreen() {
-  const { user: me } = useAuthStore();
+  const { user: me, updateUser } = useAuthStore();
   const [search,    setSearch]    = useState('');
   const [users,     setUsers]     = useState<ApiUser[]>([]);
   const [loading,   setLoading]   = useState(true);
@@ -40,7 +40,11 @@ export default function ExploreScreen() {
     setLoading(false);
   }, [me?.id]);
 
-  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+  // Rafraîchit la liste à chaque fois qu'on revient sur cet écran
+  // (ex : après avoir suivi/désabonné depuis une page profil)
+  useFocusEffect(
+    useCallback(() => { fetchUsers(search || undefined); }, [fetchUsers, search])
+  );
 
   useEffect(() => {
     if (!search) { fetchUsers(); return; }
@@ -69,8 +73,13 @@ export default function ExploreScreen() {
       ? await apiDelete(`/api/users/${user.id}/follow`)
       : await apiPost(`/api/users/${user.id}/follow`);
 
-    // Revert si erreur
-    if (!res.success) {
+    if (res.success) {
+      // Met à jour le followingCount du compte connecté
+      updateUser({
+        followingCount: Math.max(0, (me?.followingCount ?? 0) + (wasFollowing ? -1 : 1)),
+      });
+    } else {
+      // Revert si erreur
       console.warn('[follow] échec API:', res.error);
       setUsers(prev => prev.map(u => u.id === user.id ? {
         ...u,
