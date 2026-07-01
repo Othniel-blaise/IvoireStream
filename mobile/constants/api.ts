@@ -5,3 +5,4 @@
 const PROD_URL = 'https://ivoirestream.onrender.com';
 
 export const API_URL = PROD_URL;
+export const WS_URL  = PROD_URL.replace('https://', 'wss://').replace('http://', 'ws://');

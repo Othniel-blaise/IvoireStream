@@ -23,6 +23,7 @@ import { useStreamStore, ApiStream } from '../../store/stream.store';
 import { useAuthStore } from '../../store/auth.store';
 import { apiGet, apiPost } from '../../lib/api';
 import { formatCount } from '../../constants/mock-data';
+import { WS_URL } from '../../constants/api';
 
 // ── Types ──────────────────────────────────────────────────────────────
 interface Comment {
@@ -70,11 +71,14 @@ export default function LiveScreen() {
   const [loadingStream,  setLoadingStream]  = useState(!isHost);
   const [isFollowingHost, setIsFollowingHost] = useState(false);
   const [followPending,   setFollowPending]   = useState(false);
+  const [viewerCount,    setViewerCount]    = useState<number>(sessionData?.stream?.viewerCount ?? 0);
 
   const engineRef        = useRef<IRtcEngine | null>(null);
   const listRef          = useRef<FlatList<Comment>>(null);
+  const wsRef            = useRef<WebSocket | null>(null);
   const endedManuallyRef = useRef(false);  // true si l'hôte a appuyé "Terminer"
   const hasSeenHostRef   = useRef(false);  // true dès que le broadcaster a rejoint
+  const viewerJoinedRef  = useRef(false);  // true si on a appelé /view (pour unview au départ)
 
   // ── Chronomètre ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -102,6 +106,7 @@ export default function LiveScreen() {
 
       const { stream: s } = res.data;
       setStream(s);
+      setViewerCount(s.viewerCount);
       if (s.visibility === 'PRIVATE') setUnlocked(false);
       setLoadingStream(false);
 
@@ -111,8 +116,14 @@ export default function LiveScreen() {
         setIsFollowingHost(hostRes.data.user.isFollowing ?? false);
       }
 
-      // Incrémenter le compteur de viewers
-      await apiPost(`/api/streams/${id}/view`);
+      // N'incrémenter que si le live est public (privé = gate d'abord, comptage après paiement)
+      if (s.visibility !== 'PRIVATE') {
+        const viewRes = await apiPost<{ viewerCount: number }>(`/api/streams/${id}/view`);
+        if (viewRes.success && viewRes.data) {
+          setViewerCount(viewRes.data.viewerCount);
+        }
+        viewerJoinedRef.current = true;
+      }
 
       // Initialiser Agora en mode viewer
       await initAgora(res.data.appId, res.data.agoraToken, res.data.channelName, false);
@@ -159,12 +170,85 @@ export default function LiveScreen() {
     setEngineReady(true);
   }
 
+  // ── Chat WebSocket (hôte + viewer) avec reconnexion automatique ──────
+  useEffect(() => {
+    if (loadingStream) return;
+    let destroyed = false;
+    let retryDelay = 1000;
+
+    function connect() {
+      if (destroyed) return;
+      const ws = new WebSocket(`${WS_URL}/api/chat/${id}`);
+      wsRef.current = ws;
+
+      ws.onmessage = (e) => {
+        try {
+          const cmt: Comment = JSON.parse(e.data);
+          setComments(prev => [...prev, { ...cmt, sentAt: new Date(cmt.sentAt) }]);
+          setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 60);
+        } catch {}
+      };
+
+      ws.onopen  = () => { retryDelay = 1000; }; // reset backoff à la reconnexion
+      ws.onerror = () => {};
+      ws.onclose = () => {
+        wsRef.current = null;
+        if (!destroyed) {
+          // Reconnexion exponentielle (max 30s)
+          setTimeout(connect, Math.min(retryDelay, 30000));
+          retryDelay = Math.min(retryDelay * 2, 30000);
+        }
+      };
+    }
+
+    connect();
+    return () => {
+      destroyed = true;
+      wsRef.current?.close();
+      wsRef.current = null;
+    };
+  }, [id, loadingStream]);
+
+  // ── Refresh token Agora avant expiration (2h TTL → refresh à 1h50) ──
+  useEffect(() => {
+    if (!engineReady) return;
+    const REFRESH_MS = 110 * 60 * 1000; // 1h50
+    const timer = setTimeout(async () => {
+      const res = await apiGet<{ agoraToken: string }>(`/api/streams/${id}/token`);
+      if (res.success && res.data) {
+        engineRef.current?.renewToken(res.data.agoraToken);
+      }
+    }, REFRESH_MS);
+    return () => clearTimeout(timer);
+  }, [id, engineReady]);
+
+  // ── Polling du compteur de viewers (hôte + viewer) ───────────────────
+  useEffect(() => {
+    if (loadingStream) return;
+    let active = true;
+    const interval = setInterval(async () => {
+      const res = await apiGet<{ viewerCount: number }>(`/api/streams/${id}/viewers`);
+      if (!active) return;
+      if (res.success && res.data) {
+        setViewerCount(res.data.viewerCount);
+      } else {
+        // Live terminé ou introuvable — inutile de continuer à polluer
+        clearInterval(interval);
+      }
+    }, 8000);
+    return () => { active = false; clearInterval(interval); };
+  }, [id, loadingStream]);
+
   // ── Nettoyage ─────────────────────────────────────────────────────────
   useEffect(() => {
     return () => {
       engineRef.current?.leaveChannel();
       engineRef.current?.release();
       engineRef.current = null;
+      // Décrémenter le compteur si ce viewer avait rejoint
+      if (viewerJoinedRef.current) {
+        apiPost(`/api/streams/${id}/unview`).catch(() => {});
+      }
       // Si l'hôte quitte sans appuyer "Terminer" (fermeture app, navigation),
       // on clôture le live côté serveur pour éviter les lives fantômes en DB.
       const { hostSession, endLive } = useStreamStore.getState();
@@ -244,9 +328,14 @@ export default function LiveScreen() {
       text:   message.trim(),
       sentAt: new Date(),
     };
+    // Affichage local immédiat
     setComments(prev => [...prev, cmt]);
     setMessage('');
     setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 60);
+    // Diffusion aux autres via WebSocket
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify(cmt));
+    }
   }
 
   // ── Loading ───────────────────────────────────────────────────────────
@@ -293,7 +382,12 @@ export default function LiveScreen() {
             <Text style={styles.priceVal}>{stream.priceXOF?.toLocaleString()} FCFA</Text>
             <Text style={styles.priceSub}>fixé par le créateur</Text>
           </View>
-          <TouchableOpacity onPress={() => setUnlocked(true)} activeOpacity={0.88} style={styles.waveWrap}>
+          <TouchableOpacity onPress={async () => {
+              setUnlocked(true);
+              const viewRes = await apiPost<{ viewerCount: number }>(`/api/streams/${id}/view`);
+              if (viewRes.success && viewRes.data) setViewerCount(viewRes.data.viewerCount);
+              viewerJoinedRef.current = true;
+            }} activeOpacity={0.88} style={styles.waveWrap}>
             <LinearGradient
               colors={[Colors.gold, Colors.orange]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
@@ -350,7 +444,7 @@ export default function LiveScreen() {
           <Avatar emoji={stream?.host.avatarEmoji ?? '👤'} size={30} ring="green" />
           <View style={styles.hostInfo}>
             <Text style={styles.hostName} numberOfLines={1}>{stream?.host.username}</Text>
-            <Text style={styles.viewerCount}>👁 {formatCount(stream?.viewerCount ?? 0)}</Text>
+            <Text style={styles.viewerCount}>👁 {formatCount(viewerCount)}</Text>
           </View>
           {!isHost && (
             <TouchableOpacity
