@@ -3,10 +3,12 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
 import rateLimit from '@fastify/rate-limit';
+import websocket from '@fastify/websocket';
 import { prisma } from './lib/prisma';
 import authRoutes from './routes/auth';
 import usersRoutes from './routes/users';
 import streamsRoutes from './routes/streams';
+import chatRoutes from './routes/chat';
 
 export async function buildServer() {
   const app = Fastify({
@@ -50,10 +52,14 @@ export async function buildServer() {
     timestamp: new Date().toISOString(),
   }));
 
+  // ── WebSocket ────────────────────────────────────────────────────────
+  await app.register(websocket);
+
   // ── Routes ──────────────────────────────────────────────────────────
   await app.register(authRoutes,    { prefix: '/api/auth' });
   await app.register(usersRoutes,   { prefix: '/api/users' });
   await app.register(streamsRoutes, { prefix: '/api/streams' });
+  await app.register(chatRoutes,    { prefix: '/api/chat' });
 
   // ── Graceful shutdown ───────────────────────────────────────────────
   app.addHook('onClose', async () => {

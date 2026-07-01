@@ -72,7 +72,10 @@ export default async function streamsRoutes(app: FastifyInstance) {
     // Mise à jour du compteur de lives du wallet
     await prisma.wallet.update({
       where: { userId },
-      data:  { livesCount: { increment: 1 } },
+      data:  {
+        livesCount:        { increment: 1 },
+        privateLivesCount: visibility === 'PRIVATE' ? { increment: 1 } : undefined,
+      },
     }).catch(() => { /* wallet peut ne pas exister encore */ });
 
     return reply.code(201).send({
@@ -149,10 +152,71 @@ export default async function streamsRoutes(app: FastifyInstance) {
   app.post('/:id/view', async (req, reply) => {
     const { id } = req.params as { id: string };
 
+    // Rejeter si l'hôte se compte lui-même comme viewer
+    const token = req.headers.authorization?.split(' ')[1];
+    if (token) {
+      try {
+        const { userId } = app.jwt.decode(token) as { userId: string };
+        const existing = await prisma.liveStream.findUnique({
+          where:  { id },
+          select: { hostId: true, viewerCount: true },
+        });
+        if (existing?.hostId === userId) {
+          return reply.send({ success: true, data: { viewerCount: existing.viewerCount } });
+        }
+      } catch { /* token invalide — on laisse passer */ }
+    }
+
     const stream = await prisma.liveStream.update({
       where: { id, isLive: true },
       data:  { viewerCount: { increment: 1 } },
     }).catch(() => null);
+
+    if (!stream) return reply.code(404).send({ success: false, error: 'Stream introuvable ou terminé' });
+
+    // Mettre à jour le compteur cumulatif de viewers dans le wallet de l'hôte
+    await prisma.wallet.updateMany({
+      where: { userId: stream.hostId },
+      data:  { totalViewers: { increment: 1 } },
+    }).catch(() => {});
+
+    return reply.send({ success: true, data: { viewerCount: stream.viewerCount } });
+  });
+
+  // ── GET /api/streams/:id/token — Rafraîchir le token Agora ──────────
+  app.get('/:id/token', { preHandler: authenticate }, async (req, reply) => {
+    const { userId } = req.user as { userId: string };
+    const { id }     = req.params as { id: string };
+
+    const stream = await prisma.liveStream.findUnique({ where: { id, isLive: true } });
+    if (!stream) return reply.code(404).send({ success: false, error: 'Stream introuvable ou terminé' });
+
+    const role       = stream.hostId === userId ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
+    const agoraToken = makeToken(stream.id, 0, role);
+
+    return reply.send({ success: true, data: { agoraToken } });
+  });
+
+  // ── POST /api/streams/:id/unview — Décrémenter viewerCount ───────────
+  app.post('/:id/unview', async (req, reply) => {
+    const { id } = req.params as { id: string };
+
+    const stream = await prisma.liveStream.update({
+      where: { id, isLive: true, viewerCount: { gt: 0 } },
+      data:  { viewerCount: { decrement: 1 } },
+    }).catch(() => null);
+
+    return reply.send({ success: true, data: { viewerCount: stream?.viewerCount ?? 0 } });
+  });
+
+  // ── GET /api/streams/:id/viewers — Nombre de viewers en temps réel ───
+  app.get('/:id/viewers', async (req, reply) => {
+    const { id } = req.params as { id: string };
+
+    const stream = await prisma.liveStream.findUnique({
+      where:  { id, isLive: true },
+      select: { viewerCount: true },
+    });
 
     if (!stream) return reply.code(404).send({ success: false, error: 'Stream introuvable ou terminé' });
 
