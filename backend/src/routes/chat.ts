@@ -1,12 +1,14 @@
 import { FastifyInstance } from 'fastify';
+import { SocketStream } from '@fastify/websocket';
 import { WebSocket } from 'ws';
 
 // streamId → ensemble de clients connectés
 const rooms = new Map<string, Set<WebSocket>>();
 
 export default async function chatRoutes(app: FastifyInstance) {
-  app.get('/:id', { websocket: true }, (socket: WebSocket, req) => {
+  app.get('/:id', { websocket: true }, (connection: SocketStream, req) => {
     const { id } = req.params as { id: string };
+    const socket  = connection.socket;
 
     if (!rooms.has(id)) rooms.set(id, new Set());
     const room = rooms.get(id)!;
@@ -14,7 +16,6 @@ export default async function chatRoutes(app: FastifyInstance) {
 
     socket.on('message', (raw: Buffer) => {
       const data = raw.toString();
-      // Diffuser à tous sauf l'expéditeur
       for (const client of room) {
         if (client !== socket && client.readyState === WebSocket.OPEN) {
           client.send(data);

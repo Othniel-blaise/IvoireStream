@@ -17,7 +17,7 @@
     "@fastify/helmet": "^11.0.0",
     "@fastify/jwt": "^8.0.0",
     "@fastify/rate-limit": "^9.0.0",
-    "@fastify/websocket": "^11.2.0",
+    "@fastify/websocket": "^8.3.1",
     "@prisma/client": "^5.0.0",
     "agora-token": "^2.0.5",
     "bcryptjs": "^2.4.3",
