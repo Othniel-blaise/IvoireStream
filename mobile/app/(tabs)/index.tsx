@@ -44,7 +44,7 @@ export default function FeedScreen() {
 
       {/* ── Header ── */}
       <View style={styles.header}>
-        <Text style={styles.logo}>IvoireStream</Text>
+        <Text style={styles.logo}>BABY</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.iconBtn}>
             <Text style={styles.iconBtnIcon}>🔔</Text>
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     fontFamily: 'SpaceMono_400Regular',
     fontSize: 20,
     fontWeight: '900',
-    color: '#19E680',
+    color: '#7C3AED',
   },
   headerActions: {
     flexDirection: 'row',

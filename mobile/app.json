@@ -1,31 +1,31 @@
 {
   "expo": {
-    "name": "IvoireStream",
+    "name": "BABY",
     "slug": "ivoirestream",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "ivoirestream",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0F0F14",
+    "backgroundColor": "#15121C",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0A120E"
+      "backgroundColor": "#15121C"
     },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "ci.ivoirestream.app",
       "infoPlist": {
-        "NSCameraUsageDescription": "IvoireStream a besoin de la caméra pour diffuser ton live.",
-        "NSMicrophoneUsageDescription": "IvoireStream a besoin du micro pour diffuser ton live."
+        "NSCameraUsageDescription": "BABY a besoin de la caméra pour diffuser ton live.",
+        "NSMicrophoneUsageDescription": "BABY a besoin du micro pour diffuser ton live."
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "monochromeImage": "./assets/android-icon-monochrome.png",
-        "backgroundColor": "#0A120E"
+        "backgroundColor": "#7C3AED"
       },
       "package": "ci.ivoirestream.app",
       "predictiveBackGestureEnabled": false,

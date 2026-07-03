@@ -43,7 +43,7 @@ export default function LoginScreen() {
           {/* ── Header ── */}
           <View style={styles.header}>
             <View style={styles.logoRow}>
-              <Text style={styles.logoText}>IvoireStream</Text>
+              <Text style={styles.logoText}>BABY</Text>
               <View style={styles.liveChip}>
                 <Text style={styles.liveText}>LIVE</Text>
               </View>
@@ -169,10 +169,10 @@ const styles = StyleSheet.create({
     fontFamily: 'SpaceMono_400Regular',
     fontSize: 18,
     fontWeight: '900',
-    color: '#19E680',
+    color: '#7C3AED',
   },
   liveChip: {
-    backgroundColor: '#19E680',
+    backgroundColor: '#FF2E7E',
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 4,
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     fontFamily: 'SpaceMono_400Regular',
     fontSize: 8,
     fontWeight: '700',
-    color: '#0A120E',
+    color: '#FFF9F4',
   },
 
   // Hero text

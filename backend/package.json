@@ -1,7 +1,7 @@
 {
-  "name": "ivoirestream-api",
+  "name": "baby-api",
   "version": "1.0.0",
-  "description": "IvoireStream backend API",
+  "description": "BABY backend API",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

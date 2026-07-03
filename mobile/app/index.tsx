@@ -65,7 +65,7 @@ export default function SplashScreen() {
     <View style={styles.root}>
 
       {/* ── Dark background ── */}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0A120E' }]} />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#15121C' }]} />
 
       {/* ── Radial ambient glow (simulated with concentric circles) ── */}
       <Animated.View
@@ -93,7 +93,7 @@ export default function SplashScreen() {
           },
         ]}
       >
-        {/* Bolt */}
+        {/* Play mark */}
         <Animated.Text
           style={[
             styles.bolt,
@@ -102,30 +102,30 @@ export default function SplashScreen() {
                 inputRange: [0, 1],
                 outputRange: [8, 28],
               }),
-              textShadowColor: '#19E680',
+              textShadowColor: '#FF2E7E',
             },
           ]}
         >
-          ⚡
+          ▶
         </Animated.Text>
 
-        {/* Wordmark — gradient "IvoireStream" */}
+        {/* Wordmark — gradient "BABY" */}
         <MaskedView
           maskElement={
-            <Text style={styles.wordmark}>IvoireStream</Text>
+            <Text style={styles.wordmark}>BABY</Text>
           }
         >
           <LinearGradient
-            colors={['#19E680', '#00C060', '#FF8C00']}
+            colors={['#7C3AED', '#FF2E7E', '#FFD93D']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Text style={[styles.wordmark, { opacity: 0 }]}>IvoireStream</Text>
+            <Text style={[styles.wordmark, { opacity: 0 }]}>BABY</Text>
           </LinearGradient>
         </MaskedView>
 
         {/* Tagline */}
-        <Text style={styles.tagline}>STREAM IVOIRIEN</Text>
+        <Text style={styles.tagline}>LIVE · FUN · VIRAL</Text>
       </Animated.View>
 
       {/* ── Progress bar ── */}
@@ -133,7 +133,7 @@ export default function SplashScreen() {
         <View style={styles.barBg}>
           <Animated.View style={[styles.barFill, { width: barWidth }]}>
             <LinearGradient
-              colors={['#19E680', '#00C060']}
+              colors={['#7C3AED', '#FF2E7E']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={StyleSheet.absoluteFill}
@@ -155,7 +155,7 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#0A120E',
+    backgroundColor: '#15121C',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '50%',
     left: '50%',
-    backgroundColor: '#19E680',
+    backgroundColor: '#7C3AED',
     // borderRadius set inline from animated value
   },
   glowInner: {
@@ -177,8 +177,8 @@ const styles = StyleSheet.create({
     left: '50%',
     marginLeft: -40,
     marginTop: -40,
-    backgroundColor: '#19E680',
-    opacity: 0.06,
+    backgroundColor: '#FF2E7E',
+    opacity: 0.08,
   },
 
   center: {
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     fontSize: 34,
     fontWeight: '900',
     letterSpacing: -0.5,
-    color: '#19E680',
+    color: '#7C3AED',
   },
 
   tagline: {
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   },
   barBg: {
     height: 3,
-    backgroundColor: 'rgba(25,230,128,0.12)',
+    backgroundColor: 'rgba(124,58,237,0.15)',
     borderRadius: 2,
     overflow: 'hidden',
   },
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   pct: {
     fontFamily: 'SpaceMono_400Regular',
     fontSize: 9,
-    color: '#19E680',
+    color: '#FF2E7E',
     textAlign: 'right',
     marginTop: 6,
   },

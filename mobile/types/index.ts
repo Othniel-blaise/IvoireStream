@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────────
-// Core Domain Types — IvoireStream
+// Core Domain Types — BABY
 // ──────────────────────────────────────────────
 
 export type UserRole = 'viewer' | 'creator' | 'admin';

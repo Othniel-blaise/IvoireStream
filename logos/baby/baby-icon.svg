@@ -1,0 +1,6 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect x="8" y="8" width="496" height="496" rx="128" fill="#7C3AED"/>
+  <text x="256" y="345" text-anchor="middle" font-family="Poppins, sans-serif" font-weight="700" font-size="270" fill="#FFF9F4">B</text>
+  <circle cx="398" cy="384" r="86" fill="#FF2E7E"/>
+  <polygon points="368,344 368,424 432,384" fill="#FFF9F4"/>
+</svg>

@@ -54,7 +54,7 @@ export default function RegisterScreen() {
 
           <View style={styles.header}>
             <Text style={styles.title}>Rejoins la vibe 🎉</Text>
-            <Text style={styles.subtitle}>Crée ton compte IvoireStream gratuitement</Text>
+            <Text style={styles.subtitle}>Crée ton compte BABY gratuitement</Text>
           </View>
 
           {/* Error */}
