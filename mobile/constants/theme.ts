@@ -1,31 +1,31 @@
 import { Platform } from 'react-native';
 
 export const Colors = {
-  green:   '#19E680',
-  green2:  '#00C060',
-  orange:  '#FF8C00',
-  orange2: '#FF9A62',
-  gold:    '#FFD166',
+  green:   '#7C3AED',
+  green2:  '#FF2E7E',
+  orange:  '#FFD93D',
+  orange2: '#FF6FA0',
+  gold:    '#FFB930',
   red:     '#FF3B55',
-  purple:  '#A855F7',
+  purple:  '#7C3AED',
 
-  dark:    '#0F0F14',
-  dark2:   '#0A120E',
-  dark3:   '#112119',
-  surface: '#1A3026',
-  card:    '#141A16',
+  dark:    '#15121C',
+  dark2:   '#0F0B18',
+  dark3:   '#1E1730',
+  surface: '#2A1F42',
+  card:    '#1A1428',
 
-  ivory:   '#F6F8F7',
-  gray:    '#7A8A82',
-  grayDim: 'rgba(122,138,130,0.5)',
+  ivory:   '#FFF9F4',
+  gray:    '#9A8AAE',
+  grayDim: 'rgba(154,138,174,0.5)',
 
   white:   '#FFFFFF',
   black:   '#000000',
 
   // Semantic
-  background:  '#0F0F14',
-  text:        '#F6F8F7',
-  textSecond:  '#7A8A82',
+  background:  '#15121C',
+  text:        '#FFF9F4',
+  textSecond:  '#9A8AAE',
   border:      'rgba(255,255,255,0.07)',
   overlay:     'rgba(0,0,0,0.6)',
 } as const;
@@ -38,7 +38,7 @@ export const Gradients: Record<string, GradientTuple> = {
   bolt:     [Colors.green, Colors.orange],
   gold:     [Colors.gold,  Colors.orange],
   darkCard: [Colors.dark3, Colors.dark2],
-  liveGate: ['rgba(255,209,102,0.12)', 'rgba(255,140,0,0.12)'],
+  liveGate: ['rgba(255,185,48,0.12)', 'rgba(255,217,61,0.12)'],
 };
 
 export const Typography = {

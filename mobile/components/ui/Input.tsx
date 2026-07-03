@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   },
   focused: {
     borderColor: Colors.green,
-    backgroundColor: 'rgba(25,230,128,0.04)',
+    backgroundColor: 'rgba(124,58,237,0.04)',
   },
   errored: {
     borderColor: Colors.red,

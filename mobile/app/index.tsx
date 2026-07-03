@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   tagline: {
     fontFamily: 'SpaceMono_400Regular',
     fontSize: 10,
-    color: '#7A8A82',
+    color: '#9A8AAE',
     letterSpacing: 5,
     marginTop: 4,
   },

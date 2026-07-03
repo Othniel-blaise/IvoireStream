@@ -224,7 +224,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.dark },
   banner: { paddingHorizontal: Spacing.base, paddingBottom: Spacing.lg, gap: Spacing.md, overflow: 'hidden' },
-  bannerGlow: { position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(25,230,128,0.05)' },
+  bannerGlow: { position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(124,58,237,0.05)' },
   bannerTop: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.sm, paddingTop: Spacing.sm },
   iconBtn: { width: 34, height: 34, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 17, borderWidth: 1, borderColor: Colors.border, alignItems: 'center', justifyContent: 'center' },
   heroRow: { flexDirection: 'row', gap: Spacing.md, alignItems: 'flex-start' },

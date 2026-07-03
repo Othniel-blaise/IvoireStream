@@ -28,7 +28,7 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       {/* Background gradient */}
-      <LinearGradient colors={['#0A120E', '#0F0F14']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#15121C', '#0F0B18']} style={StyleSheet.absoluteFill} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -100,7 +100,7 @@ export default function LoginScreen() {
               style={styles.primaryWrap}
             >
               <LinearGradient
-                colors={['#19E680', '#00C060']}
+                colors={['#7C3AED', '#FF2E7E']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={[styles.primaryBtn, loading && styles.disabled]}
@@ -145,7 +145,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#0A120E',
+    backgroundColor: '#15121C',
   },
   flex: { flex: 1 },
 
@@ -192,19 +192,19 @@ const styles = StyleSheet.create({
   location: {
     fontFamily: 'SpaceMono_400Regular',
     fontSize: 11,
-    color: '#7A8A82',
+    color: '#9A8AAE',
   },
   title: {
     fontFamily: 'SpaceMono_400Regular',
     fontSize: 28,
     fontWeight: '900',
-    color: '#F6F8F7',
+    color: '#FFF9F4',
     lineHeight: 34,
     marginTop: 2,
   },
   subtitle: {
     fontSize: 14,
-    color: '#7A8A82',
+    color: '#9A8AAE',
     marginTop: 2,
   },
 
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   },
   forgot: {
     fontSize: 12,
-    color: '#19E680',
+    color: '#7C3AED',
   },
 
   // Error
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#19E680',
+    shadowColor: '#7C3AED',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 14,
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     fontFamily: 'SpaceMono_400Regular',
     fontSize: 14,
     fontWeight: '900',
-    color: '#0A120E',
+    color: '#15121C',
     letterSpacing: 0.3,
   },
 
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   },
   divText: {
     fontSize: 11,
-    color: '#7A8A82',
+    color: '#9A8AAE',
   },
 
   phoneBtn: {
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   },
   phoneBtnText: {
     fontSize: 13,
-    color: '#F6F8F7',
+    color: '#FFF9F4',
   },
 
   registerRow: {
@@ -296,9 +296,9 @@ const styles = StyleSheet.create({
   },
   registerText: {
     fontSize: 12,
-    color: '#7A8A82',
+    color: '#9A8AAE',
   },
   registerLink: {
-    color: '#19E680',
+    color: '#7C3AED',
   },
 });

@@ -61,8 +61,8 @@ export default function FeedScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#19E680"
-            colors={['#19E680']}
+            tintColor="#7C3AED"
+            colors={['#7C3AED']}
           />
         }
       >
@@ -89,7 +89,7 @@ export default function FeedScreen() {
         {/* ── Cards ── */}
         <View style={styles.cardList}>
           {isLoading && streams.length === 0 ? (
-            <ActivityIndicator color="#19E680" style={{ marginTop: 40 }} />
+            <ActivityIndicator color="#7C3AED" style={{ marginTop: 40 }} />
           ) : filtered.length === 0 ? (
             <View style={styles.empty}>
               <Text style={styles.emptyEmoji}>📡</Text>
@@ -117,7 +117,7 @@ export default function FeedScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#0F0F14',
+    backgroundColor: '#15121C',
   },
 
   // Header
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   iconBtn: {
     width: 34,
     height: 34,
-    backgroundColor: '#112119',
+    backgroundColor: '#1E1730',
     borderRadius: 17,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.07)',
@@ -168,10 +168,10 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#7A8A82',
+    color: '#9A8AAE',
   },
   tabTextActive: {
-    color: '#F6F8F7',
+    color: '#FFF9F4',
     fontWeight: '600',
   },
   tabUnderline: {
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: '#19E680',
+    backgroundColor: '#7C3AED',
     borderRadius: 1,
   },
 
@@ -203,12 +203,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontFamily: 'SpaceMono_400Regular',
     fontSize: 14,
-    color: '#F6F8F7',
+    color: '#FFF9F4',
     fontWeight: '700',
   },
   emptyHint: {
     fontSize: 12,
-    color: '#7A8A82',
+    color: '#9A8AAE',
     fontFamily: 'SpaceMono_400Regular',
   },
 });

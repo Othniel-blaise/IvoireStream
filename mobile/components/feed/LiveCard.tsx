@@ -112,9 +112,9 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   priceChip: {
-    backgroundColor: 'rgba(255,209,102,0.25)',
+    backgroundColor: 'rgba(255,185,48,0.25)',
     borderWidth: 1,
-    borderColor: 'rgba(255,209,102,0.4)',
+    borderColor: 'rgba(255,185,48,0.4)',
     borderRadius: Radius.full,
     paddingHorizontal: 14,
     paddingVertical: 5,

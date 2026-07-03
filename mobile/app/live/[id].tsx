@@ -375,7 +375,7 @@ export default function LiveScreen() {
           </View>
           <View style={styles.priceBox}>
             <LinearGradient
-              colors={['rgba(255,209,102,0.08)', 'rgba(255,140,0,0.08)']}
+              colors={['rgba(255,185,48,0.08)', 'rgba(255,217,61,0.08)']}
               style={[StyleSheet.absoluteFill, { borderRadius: Radius.xl }]}
             />
             <Text style={styles.priceLabel}>ACCÈS EXCLUSIF</Text>
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
   gateStatusDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: Colors.gold },
   gateStatusTxt: { fontFamily: Typography.fontBody, fontSize: Typography.sizes.sm, color: 'rgba(255,255,255,0.5)' },
   priceBox: {
-    width: '100%', borderWidth: 1, borderColor: 'rgba(255,209,102,0.3)',
+    width: '100%', borderWidth: 1, borderColor: 'rgba(255,185,48,0.3)',
     borderRadius: Radius.xl, paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing['2xl'], alignItems: 'center',
     overflow: 'hidden', marginTop: 4,

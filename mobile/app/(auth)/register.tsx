@@ -38,7 +38,7 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <LinearGradient colors={['#0A120E', Colors.dark]} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#15121C', Colors.dark2]} style={StyleSheet.absoluteFill} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}
@@ -114,7 +114,7 @@ export default function RegisterScreen() {
               style={styles.primaryWrap}
             >
               <LinearGradient
-                colors={['#19E680', '#00C060']}
+                colors={['#7C3AED', '#FF2E7E']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={[styles.primaryBtn, isLoading && styles.disabled]}
@@ -147,7 +147,7 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe:  { flex: 1, backgroundColor: '#0A120E' },
+  safe:  { flex: 1, backgroundColor: '#15121C' },
   flex:  { flex: 1 },
   scroll: { padding: Spacing.base, gap: Spacing.lg, paddingBottom: 40, flexGrow: 1 },
   back:  { marginTop: Spacing.sm },
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     paddingVertical: 14,
     alignItems: 'center',
-    shadowColor: '#19E680',
+    shadowColor: '#7C3AED',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 14,
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     fontFamily: 'SpaceMono_400Regular',
     fontSize: 14,
     fontWeight: '900',
-    color: '#0A120E',
+    color: '#15121C',
   },
   terms: { fontFamily: Typography.fontBody, fontSize: Typography.sizes.xs, color: Colors.gray, textAlign: 'center', lineHeight: 18 },
   link:  { color: Colors.green },

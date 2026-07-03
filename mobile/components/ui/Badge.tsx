@@ -29,7 +29,7 @@ export default function Badge({ label, variant = 'live', pulse = false, style }:
   const bg = {
     live:   Colors.red,
     gold:   Colors.gold,
-    green:  'rgba(25,230,128,0.15)',
+    green:  'rgba(124,58,237,0.15)',
     gray:   'rgba(255,255,255,0.1)',
   }[variant];
 

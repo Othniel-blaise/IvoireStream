@@ -7,14 +7,14 @@ import { formatXOF, formatCount } from '../../constants/mock-data';
 import type { Transaction } from '../../types';
 
 const TX_ICON_BG: Record<Transaction['type'], string> = {
-  gift_received: 'rgba(255,209,102,0.14)',
+  gift_received: 'rgba(255,185,48,0.14)',
   private_live:  'rgba(168,85,247,0.14)',
-  withdrawal:    'rgba(25,230,128,0.12)',
+  withdrawal:    'rgba(124,58,237,0.12)',
 };
 
 const TX_AMOUNT_COLOR: Record<Transaction['type'], string> = {
   gift_received: Colors.gold,
-  private_live:  '#A855F7',
+  private_live:  '#4DA3FF',
   withdrawal:    Colors.red,
 };
 
@@ -79,7 +79,7 @@ export default function WalletScreen() {
         <View style={styles.statsRow}>
           {[
             { val: String(wallet.livesCount),           label: 'Lives',   color: Colors.gold   },
-            { val: String(wallet.privateLivesCount),     label: 'Privés',  color: '#A855F7'     },
+            { val: String(wallet.privateLivesCount),     label: 'Privés',  color: '#4DA3FF'     },
             { val: formatCount(wallet.totalViewers),     label: 'Viewers', color: Colors.green  },
           ].map((s, i) => (
             <View key={i} style={styles.statCard}>
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(25,230,128,0.18)',
+    borderColor: 'rgba(124,58,237,0.18)',
     overflow: 'hidden',
     minHeight: 150,
   },
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(25,230,128,0.06)',
+    backgroundColor: 'rgba(124,58,237,0.06)',
   },
   glowOrb2: {
     position: 'absolute',
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(0,192,96,0.04)',
+    backgroundColor: 'rgba(255,46,126,0.04)',
   },
   balanceLabel: {
     fontFamily: 'SpaceMono_400Regular',
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   trendChip: {
-    backgroundColor: 'rgba(25,230,128,0.15)',
+    backgroundColor: 'rgba(124,58,237,0.15)',
     borderRadius: 5,
     paddingHorizontal: 8,
     paddingVertical: 3,

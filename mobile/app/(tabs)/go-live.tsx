@@ -50,7 +50,7 @@ export default function GoLiveScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <LinearGradient colors={['#0A120E', Colors.dark]} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#15121C', Colors.dark]} style={StyleSheet.absoluteFill} />
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full, borderWidth: 1,
     borderColor: Colors.border, backgroundColor: Colors.dark3,
   },
-  catActive:     { borderColor: Colors.green, backgroundColor: 'rgba(25,230,128,0.08)' },
+  catActive:     { borderColor: Colors.green, backgroundColor: 'rgba(124,58,237,0.08)' },
   catText:       { fontFamily: Typography.fontBody, fontSize: Typography.sizes.sm, color: Colors.gray },
   catTextActive: { color: Colors.green },
   row: {
