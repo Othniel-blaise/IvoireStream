@@ -9,7 +9,7 @@ async function start() {
 
   try {
     await app.listen({ port: PORT, host: HOST });
-    console.log(`\n🚀 BABY API  →  http://${HOST}:${PORT}`);
+    console.log(`\n🚀 IvoireStream API  →  http://${HOST}:${PORT}`);
     console.log(`📋 Health check      →  http://${HOST}:${PORT}/health\n`);
   } catch (err) {
     app.log.error(err);

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { RtcTokenBuilder, RtcRole } from 'agora-token';
 import { prisma } from '../lib/prisma';
 import { authenticate } from '../middleware/authenticate';
+import { endLiveRoom, liveViewerCount } from './chat';
 
 const APP_ID   = process.env.AGORA_APP_ID!;
 const APP_CERT = process.env.AGORA_APP_CERTIFICATE!;
@@ -46,11 +47,11 @@ export default async function streamsRoutes(app: FastifyInstance) {
 
     const { title, emoji, description, category, visibility, priceXOF } = parsed.data;
 
-    // Clôturer tout live précédent du même hôte
-    await prisma.liveStream.updateMany({
-      where: { hostId: userId, isLive: true },
-      data:  { isLive: false, endedAt: new Date() },
+    // Clôturer tout live précédent du même hôte (DB + room WS + viewers prévenus)
+    const previous = await prisma.liveStream.findMany({
+      where: { hostId: userId, isLive: true }, select: { id: true },
     });
+    await Promise.all(previous.map(p => endLiveRoom(p.id, 'host')));
 
     const stream = await prisma.liveStream.create({
       data: {
@@ -140,47 +141,11 @@ export default async function streamsRoutes(app: FastifyInstance) {
     if (!stream)                  return reply.code(404).send({ success: false, error: 'Stream introuvable' });
     if (stream.hostId !== userId) return reply.code(403).send({ success: false, error: 'Non autorisé' });
 
-    const updated = await prisma.liveStream.update({
-      where: { id },
-      data:  { isLive: false, endedAt: new Date() },
-    });
+    // Clôture DB + notification de tous les viewers connectés (WS) + fermeture de la room
+    await endLiveRoom(id, 'host');
+    const updated = await prisma.liveStream.findUnique({ where: { id } });
 
     return reply.send({ success: true, data: { stream: updated } });
-  });
-
-  // ── POST /api/streams/:id/view — Incrémenter viewerCount ─────────────
-  app.post('/:id/view', async (req, reply) => {
-    const { id } = req.params as { id: string };
-
-    // Rejeter si l'hôte se compte lui-même comme viewer
-    const token = req.headers.authorization?.split(' ')[1];
-    if (token) {
-      try {
-        const { userId } = app.jwt.decode(token) as { userId: string };
-        const existing = await prisma.liveStream.findUnique({
-          where:  { id },
-          select: { hostId: true, viewerCount: true },
-        });
-        if (existing?.hostId === userId) {
-          return reply.send({ success: true, data: { viewerCount: existing.viewerCount } });
-        }
-      } catch { /* token invalide — on laisse passer */ }
-    }
-
-    const stream = await prisma.liveStream.update({
-      where: { id, isLive: true },
-      data:  { viewerCount: { increment: 1 } },
-    }).catch(() => null);
-
-    if (!stream) return reply.code(404).send({ success: false, error: 'Stream introuvable ou terminé' });
-
-    // Mettre à jour le compteur cumulatif de viewers dans le wallet de l'hôte
-    await prisma.wallet.updateMany({
-      where: { userId: stream.hostId },
-      data:  { totalViewers: { increment: 1 } },
-    }).catch(() => {});
-
-    return reply.send({ success: true, data: { viewerCount: stream.viewerCount } });
   });
 
   // ── GET /api/streams/:id/token — Rafraîchir le token Agora ──────────
@@ -197,21 +162,13 @@ export default async function streamsRoutes(app: FastifyInstance) {
     return reply.send({ success: true, data: { agoraToken } });
   });
 
-  // ── POST /api/streams/:id/unview — Décrémenter viewerCount ───────────
-  app.post('/:id/unview', async (req, reply) => {
-    const { id } = req.params as { id: string };
-
-    const stream = await prisma.liveStream.update({
-      where: { id, isLive: true, viewerCount: { gt: 0 } },
-      data:  { viewerCount: { decrement: 1 } },
-    }).catch(() => null);
-
-    return reply.send({ success: true, data: { viewerCount: stream?.viewerCount ?? 0 } });
-  });
-
   // ── GET /api/streams/:id/viewers — Nombre de viewers en temps réel ───
   app.get('/:id/viewers', async (req, reply) => {
     const { id } = req.params as { id: string };
+
+    // Source de vérité = room WS en mémoire ; fallback DB si aucune room active
+    const live = liveViewerCount(id);
+    if (live !== null) return reply.send({ success: true, data: { viewerCount: live } });
 
     const stream = await prisma.liveStream.findUnique({
       where:  { id, isLive: true },

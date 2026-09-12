@@ -47,7 +47,7 @@ export async function buildServer() {
   // ── Health ──────────────────────────────────────────────────────────
   app.get('/health', async () => ({
     status: 'ok',
-    service: 'BABY API',
+    service: 'IvoireStream API',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
   }));
