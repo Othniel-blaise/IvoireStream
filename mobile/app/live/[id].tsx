@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   TextInput, FlatList, KeyboardAvoidingView,
-  Platform, PermissionsAndroid, Alert, ActivityIndicator,
+  Platform, PermissionsAndroid, Alert, ActivityIndicator, Modal, Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -32,6 +32,9 @@ interface Comment {
   text:   string;
   sentAt: Date;
 }
+
+interface GiftItem { id: string; emoji: string; label: string; xofValue: number }
+interface GiftEvent { id: string; gift: GiftItem; sender: { id: string; username: string; avatarEmoji: string } }
 
 function formatDuration(ms: number): string {
   const s = Math.floor(ms / 1000);
@@ -72,6 +75,12 @@ export default function LiveScreen() {
   const [isFollowingHost, setIsFollowingHost] = useState(false);
   const [followPending,   setFollowPending]   = useState(false);
   const [viewerCount,    setViewerCount]    = useState<number>(sessionData?.stream?.viewerCount ?? 0);
+  const [paying,         setPaying]         = useState(false);
+  const [giftOpen,       setGiftOpen]       = useState(false);
+  const [giftCatalog,    setGiftCatalog]    = useState<GiftItem[]>([]);
+  const [giftSending,    setGiftSending]    = useState<string | null>(null);
+  const [floatingGift,   setFloatingGift]   = useState<GiftEvent | null>(null);
+  const giftAnim         = useRef(new Animated.Value(0)).current;
 
   const engineRef        = useRef<IRtcEngine | null>(null);
   const listRef          = useRef<FlatList<Comment>>(null);
@@ -93,8 +102,9 @@ export default function LiveScreen() {
       const res = await apiGet<{
         stream:      ApiStream;
         channelName: string;
-        agoraToken:  string;
+        agoraToken:  string | null;
         appId:       string;
+        hasAccess:   boolean;
       }>(`/api/streams/${id}`);
 
       if (!res.success || !res.data) {
@@ -103,10 +113,10 @@ export default function LiveScreen() {
         return;
       }
 
-      const { stream: s } = res.data;
+      const { stream: s, hasAccess } = res.data;
       setStream(s);
       setViewerCount(s.viewerCount);
-      if (s.visibility === 'PRIVATE') setUnlocked(false);
+      if (s.visibility === 'PRIVATE' && !hasAccess) setUnlocked(false);
       setLoadingStream(false);
 
       // Vérifie si le viewer suit déjà l'hôte
@@ -115,10 +125,77 @@ export default function LiveScreen() {
         setIsFollowingHost(hostRes.data.user.isFollowing ?? false);
       }
 
-      // Initialiser Agora en mode viewer
-      await initAgora(res.data.appId, res.data.agoraToken, res.data.channelName, false);
+      // Initialiser Agora en mode viewer (seulement si on a le droit d'entrer)
+      if (res.data.agoraToken) {
+        await initAgora(res.data.appId, res.data.agoraToken, res.data.channelName, false);
+      }
     })();
   }, [id]);
+
+  // ── Payer l'accès à un live privé ────────────────────────────────────
+  async function handlePayAccess() {
+    if (paying) return;
+    setPaying(true);
+    const pay = await apiPost<{ status: string; checkoutUrl?: string }>('/api/payments/stream-access', { streamId: id });
+    if (!pay.success || !pay.data) {
+      setPaying(false);
+      Alert.alert('Paiement refusé', pay.error ?? 'Réessaie plus tard');
+      return;
+    }
+    if (pay.data.status !== 'COMPLETED') {
+      // Fournisseur réel : ouvrir checkoutUrl puis attendre le webhook (à brancher)
+      setPaying(false);
+      Alert.alert('Paiement en attente', 'Termine le paiement dans ton application de paiement.');
+      return;
+    }
+    // Accès validé → récupérer le token Agora et entrer
+    const res = await apiGet<{ stream: ApiStream; channelName: string; agoraToken: string | null; appId: string }>(`/api/streams/${id}`);
+    setPaying(false);
+    if (res.success && res.data?.agoraToken) {
+      setUnlocked(true);
+      await initAgora(res.data.appId, res.data.agoraToken, res.data.channelName, false);
+    } else {
+      Alert.alert('Erreur', "Paiement validé mais accès impossible. Relance le live.");
+    }
+  }
+
+  // ── Cadeaux ──────────────────────────────────────────────────────────
+  async function openGifts() {
+    if (giftCatalog.length === 0) {
+      const res = await apiGet<{ gifts: GiftItem[] }>('/api/gifts/catalog');
+      if (res.success && res.data) setGiftCatalog(res.data.gifts);
+    }
+    setGiftOpen(true);
+  }
+
+  async function sendGift(gift: GiftItem) {
+    if (giftSending) return;
+    setGiftSending(gift.id);
+    const res = await apiPost<{ balanceXOF: number }>(`/api/gifts/${id}`, { giftId: gift.id });
+    setGiftSending(null);
+    if (!res.success) {
+      Alert.alert('Cadeau non envoyé', res.error ?? 'Réessaie plus tard');
+      return;
+    }
+    setGiftOpen(false);
+  }
+
+  function showGift(ev: GiftEvent) {
+    setFloatingGift(ev);
+    giftAnim.setValue(0);
+    Animated.sequence([
+      Animated.spring(giftAnim, { toValue: 1, useNativeDriver: true, friction: 5 }),
+      Animated.delay(1800),
+      Animated.timing(giftAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
+    ]).start(() => setFloatingGift(null));
+    // Trace dans le fil de chat
+    setComments(prev => [...prev, {
+      id: `gift-${ev.id}`, author: ev.sender,
+      text: `a envoyé ${ev.gift.emoji} ${ev.gift.label} · ${ev.gift.xofValue.toLocaleString()} F`,
+      sentAt: new Date(),
+    }]);
+    setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 60);
+  }
 
   // ── Initialiser Agora (hôte) ──────────────────────────────────────────
   useEffect(() => {
@@ -209,6 +286,9 @@ export default function LiveScreen() {
             if (!msg.author || !msg.text) break; // message d'un ancien serveur / malformé
             setComments(prev => [...prev, { id: msg.id, author: msg.author, text: msg.text, sentAt: new Date(msg.sentAt) }]);
             setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 60);
+            break;
+          case 'gift':
+            if (msg.gift && msg.sender) showGift(msg as GiftEvent);
             break;
           case 'ended':
             handleEnded();
@@ -346,13 +426,15 @@ export default function LiveScreen() {
             <Text style={styles.priceVal}>{stream.priceXOF?.toLocaleString()} FCFA</Text>
             <Text style={styles.priceSub}>fixé par le créateur</Text>
           </View>
-          <TouchableOpacity onPress={() => setUnlocked(true)} activeOpacity={0.88} style={styles.waveWrap}>
+          <TouchableOpacity onPress={handlePayAccess} disabled={paying} activeOpacity={0.88} style={styles.waveWrap}>
             <LinearGradient
               colors={[Colors.gold, Colors.orange]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.waveBtn}
             >
-              <Text style={styles.waveText}>📲  Payer via WAVE</Text>
+              {paying
+                ? <ActivityIndicator color={Colors.dark2} />
+                : <Text style={styles.waveText}>📲  Payer {stream.priceXOF?.toLocaleString()} F</Text>}
             </LinearGradient>
           </TouchableOpacity>
           <Text style={styles.gateNote}>🔒 Paiement sécurisé · Accès immédiat</Text>
@@ -466,7 +548,7 @@ export default function LiveScreen() {
             onSubmitEditing={sendMessage}
             returnKeyType="send"
           />
-          <TouchableOpacity style={styles.giftFab} onPress={() => {}}>
+          <TouchableOpacity style={styles.giftFab} onPress={openGifts} disabled={isHost}>
             <LinearGradient
               colors={[Colors.gold, Colors.orange]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
@@ -480,6 +562,38 @@ export default function LiveScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* ── Animation cadeau ── */}
+      {floatingGift && (
+        <Animated.View pointerEvents="none" style={[styles.giftFloat, {
+          opacity: giftAnim,
+          transform: [{ scale: giftAnim.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) },
+                      { translateY: giftAnim.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
+        }]}>
+          <Text style={styles.giftFloatEmoji}>{floatingGift.gift.emoji}</Text>
+          <Text style={styles.giftFloatText}>{floatingGift.sender.username} · {floatingGift.gift.label}</Text>
+        </Animated.View>
+      )}
+
+      {/* ── Sélecteur de cadeaux ── */}
+      <Modal visible={giftOpen} transparent animationType="slide" onRequestClose={() => setGiftOpen(false)}>
+        <TouchableOpacity style={styles.giftBackdrop} activeOpacity={1} onPress={() => setGiftOpen(false)} />
+        <View style={[styles.giftSheet, { paddingBottom: insets.bottom + 16 }]}>
+          <Text style={styles.giftTitle}>Envoyer un cadeau à {stream?.host.username}</Text>
+          <View style={styles.giftGrid}>
+            {giftCatalog.map(g => (
+              <TouchableOpacity key={g.id} style={styles.giftCell} onPress={() => sendGift(g)} disabled={!!giftSending} activeOpacity={0.8}>
+                {giftSending === g.id
+                  ? <ActivityIndicator color={Colors.gold} />
+                  : <Text style={styles.giftEmoji}>{g.emoji}</Text>}
+                <Text style={styles.giftLabel}>{g.label}</Text>
+                <Text style={styles.giftPrice}>{g.xofValue.toLocaleString()} F</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={styles.giftNote}>Débité de ton solde · recharge depuis le Portefeuille</Text>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -584,6 +698,20 @@ const styles = StyleSheet.create({
     fontFamily: Typography.fontBody, fontSize: Typography.sizes.sm,
   },
   giftFab:  { width: 38, height: 38, borderRadius: 19, overflow: 'hidden' },
+  giftFloat: { position: 'absolute', top: '38%', alignSelf: 'center', alignItems: 'center' },
+  giftFloatEmoji: { fontSize: 84 },
+  giftFloatText: { fontFamily: Typography.fontBody, fontSize: 13, color: Colors.white, marginTop: 6,
+                   backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
+  giftBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' },
+  giftSheet: { backgroundColor: '#14121F', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingHorizontal: 16, paddingTop: 18 },
+  giftTitle: { fontFamily: Typography.fontBody, fontSize: 14, color: Colors.white, marginBottom: 14, textAlign: 'center' },
+  giftGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  giftCell: { width: '23%', aspectRatio: 0.85, alignItems: 'center', justifyContent: 'center', marginBottom: 10,
+              borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  giftEmoji: { fontSize: 30 },
+  giftLabel: { fontFamily: Typography.fontBody, fontSize: 11, color: Colors.white, marginTop: 4 },
+  giftPrice: { fontFamily: 'SpaceMono_400Regular', fontSize: 9, color: Colors.gold, marginTop: 2 },
+  giftNote: { fontFamily: Typography.fontBody, fontSize: 10, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 6 },
   fabGrad:  { flex: 1, alignItems: 'center', justifyContent: 'center' },
   shareFab: {
     width: 38, height: 38, borderRadius: 19,

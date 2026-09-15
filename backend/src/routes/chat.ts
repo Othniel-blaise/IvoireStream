@@ -102,6 +102,12 @@ export async function endLiveRoom(streamId: string, reason: 'host' | 'timeout' =
   }
 }
 
+/** Diffuse un événement à toute la room (cadeaux, annonces). */
+export function broadcastToRoom(streamId: string, payload: object) {
+  const room = rooms.get(streamId);
+  if (room) broadcast(room, payload);
+}
+
 /** Lecture instantanée (utilisée par GET /api/streams/:id/viewers). */
 export function liveViewerCount(streamId: string): number | null {
   const room = rooms.get(streamId);

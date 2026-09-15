@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import { apiPost } from '../../lib/api';
 import { useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +11,7 @@ import type { Transaction } from '../../types';
 
 const TX_ICON_BG: Record<Transaction['type'], string> = {
   gift_received: 'rgba(255,185,48,0.14)',
+  gift_sent:     'rgba(255,111,160,0.14)',
   private_live:  'rgba(168,85,247,0.14)',
   withdrawal:    'rgba(124,58,237,0.12)',
   deposit:       'rgba(34,197,94,0.14)',
@@ -17,6 +19,7 @@ const TX_ICON_BG: Record<Transaction['type'], string> = {
 
 const TX_AMOUNT_COLOR: Record<Transaction['type'], string> = {
   gift_received: Colors.gold,
+  gift_sent:     Colors.orange2,
   private_live:  '#4DA3FF',
   withdrawal:    Colors.red,
   deposit:       Colors.green,
@@ -25,6 +28,20 @@ const TX_AMOUNT_COLOR: Record<Transaction['type'], string> = {
 export default function WalletScreen() {
   const { wallet, isLoading, fetchWallet } = useWalletStore();
   useFocusEffect(useCallback(() => { fetchWallet(); }, [fetchWallet]));
+
+  function handleDeposit() {
+    const pick = async (amountXOF: number) => {
+      const res = await apiPost<{ status: string }>('/api/payments/deposit', { amountXOF });
+      if (res.success) { fetchWallet(); Alert.alert('✅ Rechargé', `${formatXOF(amountXOF)} ajoutés à ton solde.`); }
+      else Alert.alert('Erreur', res.error ?? 'Rechargement impossible');
+    };
+    Alert.alert('Recharger', 'Choisis un montant', [
+      { text: '1 000 F',  onPress: () => pick(1_000) },
+      { text: '5 000 F',  onPress: () => pick(5_000) },
+      { text: '20 000 F', onPress: () => pick(20_000) },
+      { text: 'Annuler', style: 'cancel' },
+    ]);
+  }
   const month = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
   return (
@@ -68,8 +85,13 @@ export default function WalletScreen() {
             <Text style={styles.trendDesc}>vs mois dernier</Text>
           </View>
 
+          {/* Deposit button (bottom-left) */}
+          <TouchableOpacity style={styles.depositBtn} onPress={handleDeposit}>
+            <Text style={styles.depositText}>+ Recharger</Text>
+          </TouchableOpacity>
+
           {/* Withdraw button (bottom-right) */}
-          <TouchableOpacity style={styles.withdrawBtn}>
+          <TouchableOpacity style={styles.withdrawBtn} onPress={() => Alert.alert('Bientôt', 'Les retraits arrivent avec le fournisseur de paiement.')}>
             <LinearGradient
               colors={[Colors.green, Colors.green2]}
               start={{ x: 0, y: 0 }}
@@ -234,6 +256,17 @@ const styles = StyleSheet.create({
     fontSize: Typography.sizes.xs,
     color: 'rgba(255,255,255,0.35)',
   },
+  depositBtn: {
+    position: 'absolute',
+    left: Spacing.md,
+    bottom: Spacing.md,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 7,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+  },
+  depositText: { fontFamily: 'SpaceMono_400Regular', fontSize: 11, color: Colors.white },
   withdrawBtn: {
     position: 'absolute',
     right: Spacing.md,

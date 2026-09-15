@@ -166,29 +166,31 @@ model Transaction {
 
 enum TransactionType {
   GIFT_RECEIVED
+  GIFT_SENT
   PRIVATE_LIVE
   WITHDRAWAL
   DEPOSIT
 }
 
-// ── Payments (Wave CI) ─────────────────────────────────────────────────
+// ── Payments (fournisseur abstrait : mock | cinetpay | wave …) ─────────
 
 model Payment {
-  id        String        @id @default(cuid())
-  userId    String
-  streamId  String?
-  amountXOF Int
-  waveRef   String?       @unique
-  status    PaymentStatus @default(PENDING)
-  type      PaymentType
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  userId      String
+  streamId    String?
+  amountXOF   Int
+  provider    String        @default("mock")
+  providerRef String?       @unique
+  status      PaymentStatus @default(PENDING)
+  type        PaymentType
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   user   User        @relation(fields: [userId], references: [id])
   stream LiveStream? @relation(fields: [streamId], references: [id])
 
   @@index([userId])
-  @@index([waveRef])
+  @@index([streamId, userId, status])
 }
 
 enum PaymentStatus {
@@ -200,7 +202,7 @@ enum PaymentStatus {
 
 enum PaymentType {
   STREAM_ACCESS
-  GIFT
+  DEPOSIT
   WITHDRAWAL
 }
 

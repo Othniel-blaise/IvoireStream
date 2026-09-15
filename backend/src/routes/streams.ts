@@ -4,6 +4,7 @@ import { RtcTokenBuilder, RtcRole } from 'agora-token';
 import { prisma } from '../lib/prisma';
 import { authenticate } from '../middleware/authenticate';
 import { endLiveRoom, liveViewerCount } from './chat';
+import { hasStreamAccess } from '../services/payments';
 
 const APP_ID   = process.env.AGORA_APP_ID!;
 const APP_CERT = process.env.AGORA_APP_CERTIFICATE!;
@@ -124,11 +125,28 @@ export default async function streamsRoutes(app: FastifyInstance) {
     if (!stream)       return reply.code(404).send({ success: false, error: 'Stream introuvable' });
     if (!stream.isLive) return reply.code(410).send({ success: false, error: 'Ce live est terminé' });
 
+    // Live privé : le token Agora n'est délivré qu'à l'hôte ou à un viewer ayant payé
+    let hasAccess = stream.visibility === 'PUBLIC';
+    if (!hasAccess) {
+      try {
+        await req.jwtVerify();
+        const { userId } = req.user as { userId: string };
+        hasAccess = userId === stream.hostId || await hasStreamAccess(userId, stream.id);
+      } catch { hasAccess = false; }
+    }
+
+    if (!hasAccess) {
+      return reply.send({
+        success: true,
+        data: { stream, channelName: stream.id, agoraToken: null, appId: APP_ID, hasAccess: false },
+      });
+    }
+
     const agoraToken = makeToken(stream.id, 0, RtcRole.SUBSCRIBER);
 
     return reply.send({
       success: true,
-      data: { stream, channelName: stream.id, agoraToken, appId: APP_ID },
+      data: { stream, channelName: stream.id, agoraToken, appId: APP_ID, hasAccess: true },
     });
   });
 
@@ -170,6 +188,10 @@ export default async function streamsRoutes(app: FastifyInstance) {
 
     const stream = await prisma.liveStream.findUnique({ where: { id, isLive: true } });
     if (!stream) return reply.code(404).send({ success: false, error: 'Stream introuvable ou terminé' });
+
+    if (stream.visibility === 'PRIVATE' && stream.hostId !== userId && !(await hasStreamAccess(userId, stream.id))) {
+      return reply.code(402).send({ success: false, error: 'Accès payant requis' });
+    }
 
     const role       = stream.hostId === userId ? RtcRole.PUBLISHER : RtcRole.SUBSCRIBER;
     const agoraToken = makeToken(stream.id, 0, role);

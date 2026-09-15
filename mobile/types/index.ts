@@ -72,7 +72,7 @@ export interface Comment {
 
 // ── Wallet ──
 
-export type TransactionType = 'gift_received' | 'private_live' | 'withdrawal' | 'deposit';
+export type TransactionType = 'gift_received' | 'gift_sent' | 'private_live' | 'withdrawal' | 'deposit';
 
 export interface Transaction {
   id: string;

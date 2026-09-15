@@ -5,6 +5,7 @@ import { authenticate } from '../middleware/authenticate';
 // Types côté mobile (minuscules) ← enum Prisma
 const TX_TYPE: Record<string, string> = {
   GIFT_RECEIVED: 'gift_received',
+  GIFT_SENT:     'gift_sent',
   PRIVATE_LIVE:  'private_live',
   WITHDRAWAL:    'withdrawal',
   DEPOSIT:       'deposit',

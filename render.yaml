@@ -17,3 +17,8 @@ services:
         sync: false
       - key: CORS_ORIGIN
         value: "*"
+      # Paiement : "mock" = simulé (aucun argent réel). Remplacer par cinetpay/wave une fois l'adaptateur branché.
+      - key: PAYMENT_PROVIDER
+        value: mock
+      - key: PLATFORM_FEE_PERCENT
+        value: "15"
