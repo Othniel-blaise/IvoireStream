@@ -162,6 +162,19 @@ export default function LiveScreen() {
     setEngineReady(true);
   }
 
+  // ── Historique du chat (50 derniers messages) ─────────────────────────
+  useEffect(() => {
+    if (loadingStream || !unlocked) return;
+    (async () => {
+      const res = await apiGet<{ comments: (Omit<Comment, 'sentAt'> & { sentAt: string })[] }>(`/api/streams/${id}/comments`);
+      if (res.success && res.data) {
+        const history = res.data.comments.map(c => ({ ...c, sentAt: new Date(c.sentAt) }));
+        setComments(prev => (prev.length === 0 ? history : [...history, ...prev]));
+        setTimeout(() => listRef.current?.scrollToEnd({ animated: false }), 60);
+      }
+    })();
+  }, [id, loadingStream, unlocked]);
+
   // ── Présence + chat WebSocket (hôte + viewer), reconnexion automatique ──
   // Le serveur compte les viewers à partir des sockets connectées : rejoindre la
   // room = +1, la quitter (ou perdre le réseau) = -1. Aucun appel HTTP côté client.

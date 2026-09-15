@@ -9,6 +9,7 @@ import authRoutes from './routes/auth';
 import usersRoutes from './routes/users';
 import streamsRoutes from './routes/streams';
 import chatRoutes from './routes/chat';
+import walletRoutes from './routes/wallet';
 
 export async function buildServer() {
   const app = Fastify({
@@ -60,6 +61,7 @@ export async function buildServer() {
   await app.register(usersRoutes,   { prefix: '/api/users' });
   await app.register(streamsRoutes, { prefix: '/api/streams' });
   await app.register(chatRoutes,    { prefix: '/api/chat' });
+  await app.register(walletRoutes,  { prefix: '/api/wallet' });
 
   // ── Graceful shutdown ───────────────────────────────────────────────
   app.addHook('onClose', async () => {

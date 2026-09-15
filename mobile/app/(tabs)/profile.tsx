@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   Modal, TextInput, ActivityIndicator, Alert,
@@ -8,9 +8,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Avatar from '../../components/ui/Avatar';
 import { useAuthStore } from '../../store/auth.store';
-import { apiPatch } from '../../lib/api';
+import { apiGet, apiPatch } from '../../lib/api';
 import { Colors, Typography, Spacing, Radius } from '../../constants/theme';
-import { formatCount, MOCK_PAST_LIVES } from '../../constants/mock-data';
+import { formatCount } from '../../constants/mock-data';
 
 const PROFILE_TABS = ['Lives passés', 'Planifiés', 'À propos'] as const;
 
@@ -22,6 +22,13 @@ export default function ProfileScreen() {
   const [editBio,    setEditBio]    = useState(user?.bio ?? '');
   const [editEmoji,  setEditEmoji]  = useState(user?.avatarEmoji ?? '👤');
   const [saving,     setSaving]     = useState(false);
+  const [pastLives,  setPastLives]  = useState<{ id: string; emoji: string; peakViewers: number }[]>([]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    apiGet<{ streams: { id: string; emoji: string; peakViewers: number }[] }>(`/api/users/${user.id}/streams`)
+      .then(res => { if (res.success && res.data) setPastLives(res.data.streams); });
+  }, [user?.id]);
 
   if (!user) {
     return (
@@ -133,12 +140,15 @@ export default function ProfileScreen() {
         {/* ── Tab content ── */}
         {tab === 0 && (
           <View style={styles.grid}>
-            {MOCK_PAST_LIVES.map(live => (
+            {pastLives.length === 0 && (
+              <Text style={{ fontFamily: Typography.fontBody, fontSize: 12, color: Colors.gray, padding: 20 }}>Aucun live terminé</Text>
+            )}
+            {pastLives.map(live => (
               <TouchableOpacity key={live.id} style={styles.gridCard} activeOpacity={0.85}>
                 <LinearGradient colors={['#0A1A12', '#1A2A18']} style={styles.gridThumb}>
                   <Text style={{ fontSize: 30 }}>{live.emoji}</Text>
                   <View style={styles.gridOverlay}>
-                    <Text style={styles.gridViews}>👁 {formatCount(live.viewCount)}</Text>
+                    <Text style={styles.gridViews}>👁 {formatCount(live.peakViewers)}</Text>
                   </View>
                 </LinearGradient>
               </TouchableOpacity>

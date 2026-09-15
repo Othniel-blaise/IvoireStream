@@ -1,4 +1,6 @@
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { useCallback } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWalletStore } from '../../store/wallet.store';
@@ -10,16 +12,19 @@ const TX_ICON_BG: Record<Transaction['type'], string> = {
   gift_received: 'rgba(255,185,48,0.14)',
   private_live:  'rgba(168,85,247,0.14)',
   withdrawal:    'rgba(124,58,237,0.12)',
+  deposit:       'rgba(34,197,94,0.14)',
 };
 
 const TX_AMOUNT_COLOR: Record<Transaction['type'], string> = {
   gift_received: Colors.gold,
   private_live:  '#4DA3FF',
   withdrawal:    Colors.red,
+  deposit:       Colors.green,
 };
 
 export default function WalletScreen() {
-  const { wallet } = useWalletStore();
+  const { wallet, isLoading, fetchWallet } = useWalletStore();
+  useFocusEffect(useCallback(() => { fetchWallet(); }, [fetchWallet]));
   const month = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
   return (
@@ -39,6 +44,7 @@ export default function WalletScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchWallet} tintColor={Colors.green} />}
       >
 
         {/* ── Balance card ── */}
@@ -57,7 +63,7 @@ export default function WalletScreen() {
 
           <View style={styles.trendRow}>
             <View style={styles.trendChip}>
-              <Text style={styles.trendPct}>▲ +{wallet.trendPercent}%</Text>
+              <Text style={styles.trendPct}>{wallet.trendPercent >= 0 ? '▲ +' : '▼ '}{wallet.trendPercent}%</Text>
             </View>
             <Text style={styles.trendDesc}>vs mois dernier</Text>
           </View>
@@ -93,6 +99,9 @@ export default function WalletScreen() {
         <View style={styles.txSection}>
           <Text style={styles.txSectionTitle}>TRANSACTIONS</Text>
           <View style={styles.txList}>
+            {wallet.transactions.length === 0 && (
+              <Text style={styles.txEmpty}>Aucune transaction pour le moment</Text>
+            )}
             {wallet.transactions.map((tx: Transaction) => (
               <View key={tx.id} style={styles.txItem}>
                 {/* Icon */}
@@ -285,6 +294,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     overflow: 'hidden',
   },
+  txEmpty: { fontFamily: Typography.fontBody, fontSize: 12, color: Colors.gray, textAlign: 'center', paddingVertical: 20 },
   txItem: {
     flexDirection: 'row',
     alignItems: 'center',

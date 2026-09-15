@@ -148,6 +148,21 @@ export default async function streamsRoutes(app: FastifyInstance) {
     return reply.send({ success: true, data: { stream: updated } });
   });
 
+  // ── GET /api/streams/:id/comments — Historique du chat (50 derniers) ──
+  app.get('/:id/comments', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const limit  = Math.min(parseInt((req.query as any).limit ?? '50', 10) || 50, 100);
+
+    const rows = await prisma.comment.findMany({
+      where:   { streamId: id },
+      orderBy: { sentAt: 'desc' },
+      take:    limit,
+      include: { author: { select: { id: true, username: true, avatarEmoji: true } } },
+    });
+
+    return reply.send({ success: true, data: { comments: rows.reverse() } });
+  });
+
   // ── GET /api/streams/:id/token — Rafraîchir le token Agora ──────────
   app.get('/:id/token', { preHandler: authenticate }, async (req, reply) => {
     const { userId } = req.user as { userId: string };

@@ -182,6 +182,23 @@ export default async function usersRoutes(app: FastifyInstance) {
     return reply.send({ success: true, data: { following: false } });
   });
 
+  // ── GET /api/users/:id/streams — Lives terminés (profil) ────────────
+  app.get('/:id/streams', async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const { page, limit } = paginationSchema.parse(req.query);
+
+    const streams = await prisma.liveStream.findMany({
+      where:   { hostId: id, isLive: false },
+      orderBy: { startedAt: 'desc' },
+      skip:    (page - 1) * limit,
+      take:    limit,
+      select:  { id: true, title: true, emoji: true, category: true, visibility: true,
+                 peakViewers: true, startedAt: true, endedAt: true },
+    });
+
+    return reply.send({ success: true, data: { streams } });
+  });
+
   // ── GET /api/users/:id/followers ─────────────────────────────────────
   app.get('/:id/followers', async (req, reply) => {
     const { id } = req.params as { id: string };
